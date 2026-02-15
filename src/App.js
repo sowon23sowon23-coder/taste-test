@@ -11,6 +11,7 @@ function App() {
   const [adminPassword, setAdminPassword] = useState('');
   const [stores, setStores] = useState(initialStores);
   const [editingStore, setEditingStore] = useState(null);
+  // eslint-disable-next-line no-unused-vars
   const [userLocation, setUserLocation] = useState(null);
 
   useEffect(() => {
