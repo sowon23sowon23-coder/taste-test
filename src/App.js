@@ -192,7 +192,7 @@ function App() {
         <div className="bg-white p-8 rounded-lg shadow-lg text-center max-w-md">
           <h1 className="text-3xl font-bold mb-4">아이스크림 맛 테스트</h1>
           <p className="mb-4">매장을 선택하세요</p>
-          <select onChange={(e) => setSelectedStore(parseInt(e.target.value))} className="mb-4 p-2 border rounded w-full">
+          <select onChange={(e) => setSelectedStore(e.target.value)} className="mb-4 p-2 border rounded w-full">
             <option value="">매장 선택</option>
             {stores.map(store => (
               <option key={store.id} value={store.id}>{store.name}</option>
