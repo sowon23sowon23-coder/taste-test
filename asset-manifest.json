@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/taste-test/static/css/main.95e5bf71.css",
+    "main.js": "/taste-test/static/js/main.dd757f90.js",
+    "index.html": "/taste-test/index.html",
+    "main.95e5bf71.css.map": "/taste-test/static/css/main.95e5bf71.css.map",
+    "main.dd757f90.js.map": "/taste-test/static/js/main.dd757f90.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.95e5bf71.css",
+    "static/js/main.dd757f90.js"
+  ]
+}
