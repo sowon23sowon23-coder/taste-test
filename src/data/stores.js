@@ -1,11 +1,11 @@
 export const stores = [
-  { id: "AZ105", name: "Yogurtland Onboarding Demo Vendor", flavors: ["바닐라", "초콜릿", "딸기", "민트 초콜릿 칩", "쿠키 앤 크림", "망고", "레몬"], toppings: ["초콜릿 칩", "카라멜", "과일 토핑", "젤리", "오레오", "쿠키", "크림"] },
+  { id: "AZ105", name: "Yogurtland Onboarding Demo Vendor", flavors: ["바닐라", "초콜릿", "딸기", "민트 초콜릿 칩", "쿠키 앤 크림", "망고", "레몬"], toppings: ["초콜릿 칩", "카라멜", "과일 토핑", "젤리", "오레오", "쿠키", "크림"], lat: 33.4484, lng: -112.0740 }, // Phoenix, AZ
   { id: "AZ104", name: "Yogurtland Silver Demo Vendor", flavors: ["바닐라", "초콜릿", "딸기", "민트 초콜릿 칩", "쿠키 앤 크림", "망고", "레몬"], toppings: ["초콜릿 칩", "카라멜", "과일 토핑", "젤리", "오레오", "쿠키", "크림"] },
   { id: "AZ103", name: "Yogurtland Brink Demo Vendor", flavors: ["바닐라", "초콜릿", "딸기", "민트 초콜릿 칩", "쿠키 앤 크림", "망고", "레몬"], toppings: ["초콜릿 칩", "카라멜", "과일 토핑", "젤리", "오레오", "쿠키", "크림"] },
-  { id: "CA349", name: "YOGURTLAND AVONDALE", flavors: ["바닐라", "초콜릿", "딸기", "민트 초콜릿 칩", "쿠키 앤 크림", "망고", "레몬"], toppings: ["초콜릿 칩", "카라멜", "과일 토핑", "젤리", "오레오", "쿠키", "크림"] },
+  { id: "CA349", name: "YOGURTLAND AVONDALE", flavors: ["바닐라", "초콜릿", "딸기", "민트 초콜릿 칩", "쿠키 앤 크림", "망고", "레몬"], toppings: ["초콜릿 칩", "카라멜", "과일 토핑", "젤리", "오레오", "쿠키", "크림"], lat: 33.4356, lng: -112.3496 },
   { id: "CA348", name: "YOGURTLAND CHANDLER", flavors: ["바닐라", "초콜릿", "딸기", "민트 초콜릿 칩", "쿠키 앤 크림", "망고", "레몬"], toppings: ["초콜릿 칩", "카라멜", "과일 토핑", "젤리", "오레오", "쿠키", "크림"] },
   { id: "CA347", name: "YOGURTLAND MESA - DANA PARK", flavors: ["바닐라", "초콜릿", "딸기", "민트 초콜릿 칩", "쿠키 앤 크림", "망고", "레몬"], toppings: ["초콜릿 칩", "카라멜", "과일 토핑", "젤리", "오레오", "쿠키", "크림"] },
-  { id: "CA346", name: "YOGURTLAND CUPERTINO", flavors: ["바닐라", "초콜릿", "딸기", "민트 초콜릿 칩", "쿠키 앤 크림", "망고", "레몬"], toppings: ["초콜릿 칩", "카라멜", "과일 토핑", "젤리", "오레오", "쿠키", "크림"] },
+  { id: "CA346", name: "YOGURTLAND CUPERTINO", flavors: ["바닐라", "초콜릿", "딸기", "민트 초콜릿 칩", "쿠키 앤 크림", "망고", "레몬"], toppings: ["초콜릿 칩", "카라멜", "과일 토핑", "젤리", "오레오", "쿠키", "크림"], lat: 37.3230, lng: -122.0322 },
   { id: "CA345", name: "YOGURTLAND TUSTIN", flavors: ["바닐라", "초콜릿", "딸기", "민트 초콜릿 칩", "쿠키 앤 크림", "망고", "레몬"], toppings: ["초콜릿 칩", "카라멜", "과일 토핑", "젤리", "오레오", "쿠키", "크림"] },
   { id: "CA344", name: "YOGURTLAND CERRITOS MALL", flavors: ["바닐라", "초콜릿", "딸기", "민트 초콜릿 칩", "쿠키 앤 크림", "망고", "레몬"], toppings: ["초콜릿 칩", "카라멜", "과일 토핑", "젤리", "오레오", "쿠키", "크림"] },
   { id: "CA343", name: "YOGURTLAND LAGUNA HILLS", flavors: ["바닐라", "초콜릿", "딸기", "민트 초콜릿 칩", "쿠키 앤 크림", "망고", "레몬"], toppings: ["초콜릿 칩", "카라멜", "과일 토핑", "젤리", "오레오", "쿠키", "크림"] },

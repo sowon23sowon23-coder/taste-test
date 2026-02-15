@@ -11,6 +11,7 @@ function App() {
   const [adminPassword, setAdminPassword] = useState('');
   const [stores, setStores] = useState(initialStores);
   const [editingStore, setEditingStore] = useState(null);
+  const [userLocation, setUserLocation] = useState(null);
 
   useEffect(() => {
     const savedStores = localStorage.getItem('stores');
@@ -22,6 +23,59 @@ function App() {
   useEffect(() => {
     localStorage.setItem('stores', JSON.stringify(stores));
   }, [stores]);
+
+  const deg2rad = (deg) => {
+    return deg * (Math.PI / 180);
+  };
+
+  const getDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371; // Radius of the earth in km
+    const dLat = deg2rad(lat2 - lat1);
+    const dLon = deg2rad(lon2 - lon1);
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const d = R * c; // Distance in km
+    return d;
+  };
+
+  const findNearestStore = (userLat, userLng) => {
+    const storesWithCoords = stores.filter(store => store.lat && store.lng);
+    if (storesWithCoords.length === 0) return null;
+    let nearest = null;
+    let minDistance = Infinity;
+    storesWithCoords.forEach(store => {
+      const distance = getDistance(userLat, userLng, store.lat, store.lng);
+      if (distance < minDistance) {
+        minDistance = distance;
+        nearest = store;
+      }
+    });
+    return nearest;
+  };
+
+  const handleFindNearest = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setUserLocation({ lat: latitude, lng: longitude });
+          const nearest = findNearestStore(latitude, longitude);
+          if (nearest) {
+            setSelectedStore(nearest.id);
+          } else {
+            alert('근처에 매장이 없습니다.');
+          }
+        },
+        (error) => {
+          alert('위치 정보를 가져올 수 없습니다.');
+        }
+      );
+    } else {
+      alert('Geolocation이 지원되지 않습니다.');
+    }
+  };
 
   const handleAnswer = (yes) => {
     const question = questions[currentQuestion];
@@ -144,6 +198,7 @@ function App() {
               <option key={store.id} value={store.id}>{store.name}</option>
             ))}
           </select>
+          <button onClick={handleFindNearest} className="bg-green-500 text-white px-4 py-2 rounded mb-4 w-full">가까운 매장 찾기</button>
           <div className="mt-4">
             <input
               type="password"
