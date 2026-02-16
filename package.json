@@ -2,7 +2,6 @@
   "name": "yogurtland-taste-test",
   "version": "1.0.0",
   "private": true,
-  "homepage": "https://sowon23sowon23-coder.github.io/taste-test",
   "dependencies": {
     "lucide-react": "^0.263.1",
     "react": "^18.2.0",
