@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { IceCream, MapPin, CheckCircle, XCircle, Sparkles, Store, ChevronRight, RefreshCw } from 'lucide-react';
+import { IceCream, MapPin, Sparkles, Store, ChevronRight, RefreshCw } from 'lucide-react';
 import { questions } from './data/questions';
 import { stores as initialStores } from './data/stores';
 
@@ -79,9 +79,9 @@ function App() {
     }
   };
 
-  const handleAnswer = (yes) => {
+  const handleAnswer = (optionIndex) => {
     const question = questions[currentQuestion];
-    const option = yes ? question.options.yes : question.options.no;
+    const option = question.options[optionIndex];
 
     const newScores = { ...scores };
     option.flavors.forEach(flavor => {
@@ -388,21 +388,17 @@ function App() {
           <p className="text-2xl font-semibold text-gray-800">{questions[currentQuestion].text}</p>
         </div>
 
-        <div className="flex gap-4 mb-6">
-          <button
-            onClick={() => handleAnswer(true)}
-            className="flex-1 bg-gradient-to-r from-green-400 to-emerald-500 text-white px-8 py-6 rounded-2xl font-bold text-xl hover:from-green-500 hover:to-emerald-600 transform hover:scale-105 transition-all duration-200 shadow-lg flex items-center justify-center gap-3 group"
-          >
-            <CheckCircle className="w-8 h-8 group-hover:animate-bounce" />
-            예
-          </button>
-          <button
-            onClick={() => handleAnswer(false)}
-            className="flex-1 bg-gradient-to-r from-red-400 to-pink-500 text-white px-8 py-6 rounded-2xl font-bold text-xl hover:from-red-500 hover:to-pink-600 transform hover:scale-105 transition-all duration-200 shadow-lg flex items-center justify-center gap-3 group"
-          >
-            <XCircle className="w-8 h-8 group-hover:animate-bounce" />
-            아니오
-          </button>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          {questions[currentQuestion].options.map((option, index) => (
+            <button
+              key={index}
+              onClick={() => handleAnswer(index)}
+              className="bg-gradient-to-r from-purple-400 to-pink-400 text-white px-6 py-5 rounded-2xl font-bold text-lg hover:from-purple-500 hover:to-pink-500 transform hover:scale-105 transition-all duration-200 shadow-lg flex items-center justify-center gap-3 group"
+            >
+              <Sparkles className="w-6 h-6 group-hover:animate-bounce" />
+              {option.label}
+            </button>
+          ))}
         </div>
 
         <button
