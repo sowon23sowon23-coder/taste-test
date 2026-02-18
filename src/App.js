@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { IceCream, MapPin, Sparkles, Store, ChevronRight, RefreshCw } from 'lucide-react';
+import { IceCream, MapPin, Sparkles, Store, ChevronRight, RefreshCw, ChevronLeft, RotateCcw } from 'lucide-react';
 import { questions } from './data/questions';
 import { stores as initialStores } from './data/stores';
 import { flavors, flavorCategories, toppings } from './data/flavors';
@@ -14,6 +14,7 @@ function App() {
   const [stores, setStores] = useState(initialStores);
   const [editingStore, setEditingStore] = useState(null);
   const [adminStoreSearch, setAdminStoreSearch] = useState('');
+  const [answerHistory, setAnswerHistory] = useState([]);
   // eslint-disable-next-line no-unused-vars
   const [userLocation, setUserLocation] = useState(null);
 
@@ -85,6 +86,9 @@ function App() {
     const question = questions[currentQuestion];
     const option = question.options[optionIndex];
 
+    const newHistory = [...answerHistory, optionIndex];
+    setAnswerHistory(newHistory);
+
     const newScores = { ...scores };
     option.flavors.forEach(flavor => {
       newScores.flavors[flavor] = (newScores.flavors[flavor] || 0) + 1;
@@ -117,6 +121,25 @@ function App() {
     setCurrentQuestion(0);
     setScores({ flavors: {}, toppings: {} });
     setRecommendation(null);
+    setAnswerHistory([]);
+  };
+
+  const handlePrevious = () => {
+    if (currentQuestion === 0) return;
+    const newHistory = answerHistory.slice(0, -1);
+    setAnswerHistory(newHistory);
+    const newScores = { flavors: {}, toppings: {} };
+    newHistory.forEach((optionIndex, qIndex) => {
+      const option = questions[qIndex].options[optionIndex];
+      option.flavors.forEach(flavor => {
+        newScores.flavors[flavor] = (newScores.flavors[flavor] || 0) + 1;
+      });
+      option.toppings.forEach(topping => {
+        newScores.toppings[topping] = (newScores.toppings[topping] || 0) + 1;
+      });
+    });
+    setScores(newScores);
+    setCurrentQuestion(currentQuestion - 1);
   };
 
   const handleAdminLogin = () => {
@@ -398,9 +421,14 @@ function App() {
           </div>
         </div>
 
-        <h1 className="text-4xl font-bold mb-6 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 bg-clip-text text-transparent">
           아이스크림 맛 테스트
         </h1>
+
+        <div className="flex items-center justify-center gap-2 mb-6 bg-purple-50 border border-purple-200 rounded-full px-4 py-2 text-sm font-semibold text-purple-700">
+          <Store className="w-4 h-4" />
+          {stores.find(s => s.id === selectedStore)?.name}
+        </div>
 
         {/* Progress Bar */}
         <div className="mb-8">
@@ -442,13 +470,30 @@ function App() {
           ))}
         </div>
 
-        <button
-          onClick={() => setSelectedStore(null)}
-          className="bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-semibold hover:bg-gray-300 transform hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2 mx-auto"
-        >
-          <Store className="w-4 h-4" />
-          매장 변경
-        </button>
+        <div className="flex gap-3 justify-center flex-wrap">
+          <button
+            onClick={resetGame}
+            className="bg-gray-100 text-gray-600 px-5 py-3 rounded-xl font-semibold hover:bg-gray-200 transform hover:scale-105 transition-all duration-200 flex items-center gap-2"
+          >
+            <RotateCcw className="w-4 h-4" />
+            처음으로
+          </button>
+          <button
+            onClick={handlePrevious}
+            disabled={currentQuestion === 0}
+            className="bg-gray-100 text-gray-600 px-5 py-3 rounded-xl font-semibold hover:bg-gray-200 transform hover:scale-105 transition-all duration-200 flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            이전
+          </button>
+          <button
+            onClick={() => setSelectedStore(null)}
+            className="bg-gray-100 text-gray-600 px-5 py-3 rounded-xl font-semibold hover:bg-gray-200 transform hover:scale-105 transition-all duration-200 flex items-center gap-2"
+          >
+            <Store className="w-4 h-4" />
+            매장 변경
+          </button>
+        </div>
       </div>
     </div>
   );
