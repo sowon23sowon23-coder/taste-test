@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { IceCream, MapPin, Sparkles, Store, ChevronRight, RefreshCw, ChevronLeft, RotateCcw } from 'lucide-react';
+import { IceCream, MapPin, Sparkles, Store, ChevronRight, RefreshCw, ChevronLeft, RotateCcw, Home } from 'lucide-react';
 import { questions } from './data/questions';
 import { stores as initialStores } from './data/stores';
 import { flavors, flavorCategories, toppings } from './data/flavors';
@@ -170,10 +170,17 @@ function App() {
             <div style={{ backgroundColor: YL.primary }} className="p-3 rounded-xl">
               <Store className="w-6 h-6 text-white" />
             </div>
-            <div>
+            <div className="flex-1">
               <div className="text-xs font-bold uppercase tracking-widest" style={{ color: YL.primary }}>Yogurtland</div>
               <h1 className="text-2xl font-extrabold text-gray-800">Admin Mode</h1>
             </div>
+            <button
+              onClick={() => { setIsAdmin(false); setSelectedStore(null); resetGame(); }}
+              className="flex items-center gap-2 bg-gray-100 text-gray-600 px-4 py-2.5 rounded-xl font-semibold hover:bg-gray-200 transition-colors text-sm"
+            >
+              <Home className="w-4 h-4" />
+              홈 화면으로
+            </button>
           </div>
 
           {editingStore ? (
