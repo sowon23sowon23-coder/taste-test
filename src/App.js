@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { IceCream, MapPin, Sparkles, Store, ChevronRight, RefreshCw } from 'lucide-react';
 import { questions } from './data/questions';
 import { stores as initialStores } from './data/stores';
+import { flavors, flavorCategories, toppings } from './data/flavors';
 
 function App() {
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -12,6 +13,7 @@ function App() {
   const [adminPassword, setAdminPassword] = useState('');
   const [stores, setStores] = useState(initialStores);
   const [editingStore, setEditingStore] = useState(null);
+  const [adminStoreSearch, setAdminStoreSearch] = useState('');
   // eslint-disable-next-line no-unused-vars
   const [userLocation, setUserLocation] = useState(null);
 
@@ -151,8 +153,8 @@ function App() {
                   <IceCream className="w-6 h-6" />
                   맛
                 </h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {['바닐라', '초콜릿', '딸기', '민트 초콜릿 칩', '쿠키 앤 크림', '망고', '레몬'].map(flavor => (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-96 overflow-y-auto">
+                  {Object.keys(flavors).map(flavor => (
                     <label key={flavor} className="flex items-center gap-2 p-3 rounded-xl bg-purple-50 hover:bg-purple-100 cursor-pointer transition-colors duration-200">
                       <input
                         type="checkbox"
@@ -176,8 +178,8 @@ function App() {
                   <Sparkles className="w-6 h-6" />
                   토핑
                 </h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {['초콜릿 칩', '카라멜', '과일 토핑', '젤리', '오레오', '쿠키', '크림'].map(topping => (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-96 overflow-y-auto">
+                  {Object.keys(toppings).map(topping => (
                     <label key={topping} className="flex items-center gap-2 p-3 rounded-xl bg-pink-50 hover:bg-pink-100 cursor-pointer transition-colors duration-200">
                       <input
                         type="checkbox"
@@ -214,8 +216,15 @@ function App() {
           ) : (
             <div className="space-y-4 animate-fadeIn">
               <h2 className="text-2xl font-bold mb-4 text-gray-800">매장 선택</h2>
+              <input
+                type="text"
+                placeholder="매장 검색..."
+                value={adminStoreSearch}
+                onChange={(e) => setAdminStoreSearch(e.target.value)}
+                className="w-full p-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:ring-4 focus:ring-purple-100 transition-all duration-200 font-medium text-gray-700 bg-purple-50"
+              />
               <div className="grid gap-3 max-h-[500px] overflow-y-auto pr-2">
-                {stores.map(store => (
+                {stores.filter(store => store.name.toLowerCase().includes(adminStoreSearch.toLowerCase())).map(store => (
                   <button
                     key={store.id}
                     onClick={() => setEditingStore(store)}
@@ -301,34 +310,59 @@ function App() {
   }
 
   if (recommendation) {
+    const flavorData = flavors[recommendation.flavor] || { category: "classic", description: "맛있는 요거트" };
+    const flavorCategory = flavorCategories[flavorData.category] || flavorCategories.classic;
+    const toppingData = toppings[recommendation.topping] || { category: "candy", icon: "✨" };
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-pink-200 via-purple-200 to-blue-200 flex items-center justify-center p-4 animate-gradient">
-        <div className="bg-white p-10 rounded-3xl shadow-2xl text-center max-w-lg w-full animate-scaleIn">
+        <div className="bg-white p-10 rounded-3xl shadow-2xl text-center max-w-2xl w-full animate-scaleIn">
           <div className="mb-6 flex justify-center">
             <div className="bg-gradient-to-br from-yellow-400 to-orange-400 p-6 rounded-full animate-spin-slow">
               <Sparkles className="w-20 h-20 text-white" />
             </div>
           </div>
 
-          <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 bg-clip-text text-transparent">
+          <h1 className="text-5xl font-bold mb-3 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 bg-clip-text text-transparent">
             추천 결과!
           </h1>
+          <p className="text-gray-600 mb-8 text-lg">당신에게 딱 맞는 조합이에요! 🎉</p>
 
-          <div className="space-y-4 mb-8">
-            <div className="bg-gradient-to-r from-pink-50 to-purple-50 p-6 rounded-2xl border-2 border-pink-200 transform hover:scale-105 transition-transform duration-200">
-              <div className="flex items-center justify-center gap-3 mb-2">
-                <IceCream className="w-6 h-6 text-pink-500" />
-                <p className="text-sm font-semibold text-purple-600 uppercase tracking-wider">맛</p>
+          {/* Flavor Card */}
+          <div className="mb-6">
+            <div className={`bg-gradient-to-br ${flavorCategory.color} p-8 rounded-3xl shadow-2xl transform hover:scale-[1.02] transition-all duration-300 border-4 border-white`}>
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <span className="text-6xl">{flavorCategory.icon}</span>
               </div>
-              <p className="text-3xl font-bold text-gray-800">{recommendation.flavor || '없음'}</p>
+              <div className="bg-white/90 backdrop-blur-sm p-6 rounded-2xl">
+                <p className="text-sm font-bold text-gray-600 uppercase tracking-wider mb-2">
+                  {flavorCategory.name} Flavor
+                </p>
+                <p className="text-4xl font-bold text-gray-800 mb-2">
+                  {recommendation.flavor || '없음'}
+                </p>
+                <p className="text-gray-600 text-lg">
+                  {flavorData.description}
+                </p>
+              </div>
             </div>
+          </div>
 
-            <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-6 rounded-2xl border-2 border-purple-200 transform hover:scale-105 transition-transform duration-200">
-              <div className="flex items-center justify-center gap-3 mb-2">
-                <Sparkles className="w-6 h-6 text-purple-500" />
-                <p className="text-sm font-semibold text-purple-600 uppercase tracking-wider">토핑</p>
+          {/* Topping Card */}
+          <div className="mb-8">
+            <div className="bg-gradient-to-br from-pink-300 to-purple-300 p-6 rounded-3xl shadow-xl transform hover:scale-[1.02] transition-all duration-300 border-4 border-white">
+              <div className="bg-white/90 backdrop-blur-sm p-6 rounded-2xl">
+                <div className="flex items-center justify-center gap-3 mb-3">
+                  <span className="text-4xl">{toppingData.icon}</span>
+                  <Sparkles className="w-6 h-6 text-purple-500" />
+                </div>
+                <p className="text-sm font-bold text-gray-600 uppercase tracking-wider mb-2">
+                  Recommended Topping
+                </p>
+                <p className="text-3xl font-bold text-gray-800">
+                  {recommendation.topping || '없음'}
+                </p>
               </div>
-              <p className="text-3xl font-bold text-gray-800">{recommendation.topping || '없음'}</p>
             </div>
           </div>
 
@@ -393,10 +427,17 @@ function App() {
             <button
               key={index}
               onClick={() => handleAnswer(index)}
-              className="bg-gradient-to-r from-purple-400 to-pink-400 text-white px-6 py-5 rounded-2xl font-bold text-lg hover:from-purple-500 hover:to-pink-500 transform hover:scale-105 transition-all duration-200 shadow-lg flex items-center justify-center gap-3 group"
+              className="bg-gradient-to-br from-purple-400 to-pink-400 text-white px-6 py-6 rounded-2xl font-bold text-lg hover:from-purple-500 hover:to-pink-500 transform hover:scale-105 transition-all duration-200 shadow-lg group text-left relative overflow-hidden"
             >
-              <Sparkles className="w-6 h-6 group-hover:animate-bounce" />
-              {option.label}
+              <div className="absolute top-0 right-0 p-4">
+                <Sparkles className="w-6 h-6 group-hover:animate-bounce opacity-70" />
+              </div>
+              <div className="relative z-10">
+                <div className="text-2xl font-bold mb-2">{option.label}</div>
+                {option.description && (
+                  <div className="text-sm opacity-90 font-normal">{option.description}</div>
+                )}
+              </div>
             </button>
           ))}
         </div>
