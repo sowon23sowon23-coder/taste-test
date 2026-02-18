@@ -78,15 +78,15 @@ function App() {
           if (nearest) {
             setSelectedStore(nearest.id);
           } else {
-            alert('근처에 매장이 없습니다.');
+            alert('No nearby stores found.');
           }
         },
-        (error) => {
-          alert('위치 정보를 가져올 수 없습니다.');
+        () => {
+          alert('Unable to retrieve your location.');
         }
       );
     } else {
-      alert('Geolocation이 지원되지 않습니다.');
+      alert('Geolocation is not supported in this browser.');
     }
   };
 
@@ -162,30 +162,28 @@ function App() {
     setStores(stores.map(s => s.id === storeId ? updatedStore : s));
   };
 
-  // ── 관리자 화면 ──────────────────────────────────────────
   if (isAdmin) {
     return (
       <div style={{ backgroundColor: YL.bg }} className="min-h-screen p-6">
         <div className="max-w-4xl mx-auto">
-          {/* 헤더 */}
           <div className="bg-white rounded-2xl shadow-md p-5 mb-5 flex items-center gap-4">
             <div style={{ backgroundColor: YL.primary }} className="p-3 rounded-xl">
               <Store className="w-6 h-6 text-white" />
             </div>
             <div>
               <div className="text-xs font-bold uppercase tracking-widest" style={{ color: YL.primary }}>Yogurtland</div>
-              <h1 className="text-2xl font-extrabold text-gray-800">관리자 모드</h1>
+              <h1 className="text-2xl font-extrabold text-gray-800">Admin Mode</h1>
             </div>
           </div>
 
           {editingStore ? (
             <div className="bg-white rounded-2xl shadow-md p-8 animate-fadeIn">
               <h2 className="text-2xl font-bold mb-1 text-gray-800">{editingStore.name}</h2>
-              <p className="text-sm text-gray-400 mb-6">판매 중인 맛과 토핑을 선택하세요</p>
+              <p className="text-sm text-gray-400 mb-6">Select flavors and toppings sold at this store.</p>
 
               <div className="mb-6">
                 <h3 className="text-base font-bold mb-3 flex items-center gap-2" style={{ color: YL.primary }}>
-                  <IceCream className="w-4 h-4" /> 맛
+                  <IceCream className="w-4 h-4" /> Flavors
                 </h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-80 overflow-y-auto pr-1">
                   {Object.keys(flavors).map(flavor => (
@@ -214,7 +212,7 @@ function App() {
 
               <div className="mb-8">
                 <h3 className="text-base font-bold mb-3 flex items-center gap-2" style={{ color: YL.green }}>
-                  <Sparkles className="w-4 h-4" /> 토핑
+                  <Sparkles className="w-4 h-4" /> Toppings
                 </h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-80 overflow-y-auto pr-1">
                   {Object.keys(toppings).map(topping => (
@@ -247,22 +245,22 @@ function App() {
                   style={{ backgroundColor: YL.primary }}
                   className="flex-1 text-white px-6 py-3 rounded-xl font-bold hover:opacity-90 transition-opacity"
                 >
-                  저장
+                  Save
                 </button>
                 <button
                   onClick={() => setEditingStore(null)}
                   className="flex-1 bg-gray-100 text-gray-600 px-6 py-3 rounded-xl font-bold hover:bg-gray-200 transition-colors"
                 >
-                  취소
+                  Cancel
                 </button>
               </div>
             </div>
           ) : (
             <div className="space-y-3 animate-fadeIn">
-              <h2 className="text-xl font-bold text-gray-800">매장 선택</h2>
+              <h2 className="text-xl font-bold text-gray-800">Select Store</h2>
               <input
                 type="text"
-                placeholder="매장 검색..."
+                placeholder="Search stores..."
                 value={adminStoreSearch}
                 onChange={(e) => setAdminStoreSearch(e.target.value)}
                 className="w-full p-3 border-2 border-gray-200 rounded-xl transition-all duration-200 font-medium text-gray-700 bg-white outline-none focus:border-pink-300"
@@ -288,7 +286,7 @@ function App() {
                 onClick={() => setIsAdmin(false)}
                 className="w-full mt-2 bg-gray-100 text-gray-500 px-6 py-3 rounded-xl font-semibold hover:bg-gray-200 transition-colors"
               >
-                로그아웃
+                Log out
               </button>
             </div>
           )}
@@ -297,54 +295,49 @@ function App() {
     );
   }
 
-  // ── 매장 선택 화면 ────────────────────────────────────────
   if (!selectedStore) {
     return (
       <div style={{ backgroundColor: YL.bg }} className="min-h-screen flex items-center justify-center p-4">
         <div className="bg-white rounded-3xl shadow-xl text-center max-w-md w-full animate-slideUp overflow-hidden">
-          {/* 상단 배너 */}
           <div style={{ backgroundColor: YL.primary }} className="px-8 pt-10 pb-8">
             <div className="text-5xl mb-3">🍦</div>
             <div className="text-white/60 text-xs font-bold uppercase tracking-[0.3em] mb-1">Yogurtland</div>
             <h1 className="text-3xl font-extrabold text-white leading-tight">
-              나만의 요거트<br />맛 찾기
+              Find Your Perfect<br />Yogurt Flavor
             </h1>
-            <p className="text-white/70 mt-2 text-sm">당신에게 딱 맞는 맛을 찾아드려요!</p>
+            <p className="text-white/70 mt-2 text-sm">We will match you with your best combo.</p>
           </div>
 
           <div className="p-8">
-            {/* 매장 선택 */}
             <div className="mb-4">
               <label className="block text-left text-sm font-semibold text-gray-500 mb-2 flex items-center gap-1.5">
-                <Store className="w-4 h-4" /> 매장 선택
+                <Store className="w-4 h-4" /> Select Store
               </label>
               <select
                 onChange={(e) => setSelectedStore(e.target.value)}
                 className="w-full p-4 border-2 border-gray-200 rounded-xl font-medium text-gray-700 bg-gray-50 outline-none transition-all duration-200 focus:border-pink-300 appearance-none"
               >
-                <option value="">매장을 선택하세요</option>
+                <option value="">Choose a store</option>
                 {stores.map(store => (
                   <option key={store.id} value={store.id}>{store.name}</option>
                 ))}
               </select>
             </div>
 
-            {/* 가까운 매장 찾기 */}
             <button
               onClick={handleFindNearest}
               style={{ backgroundColor: YL.green }}
               className="w-full text-white px-6 py-3.5 rounded-xl font-bold hover:opacity-90 transition-opacity mb-6 flex items-center justify-center gap-2"
             >
               <MapPin className="w-4 h-4" />
-              가까운 매장 찾기
+              Find Nearest Store
             </button>
 
-            {/* 관리자 로그인 */}
             <div className="border-t border-gray-100 pt-5">
               <div className="flex gap-2">
                 <input
                   type="password"
-                  placeholder="관리자 비밀번호"
+                  placeholder="Admin password"
                   value={adminPassword}
                   onChange={(e) => { setAdminPassword(e.target.value); setAdminError(false); }}
                   onKeyDown={(e) => e.key === 'Enter' && handleAdminLogin()}
@@ -354,11 +347,11 @@ function App() {
                   onClick={handleAdminLogin}
                   className="bg-gray-700 text-white px-5 py-3 rounded-xl text-sm font-bold hover:bg-gray-800 transition-colors"
                 >
-                  관리자
+                  Admin
                 </button>
               </div>
               {adminError && (
-                <p className="mt-2 text-sm text-red-500 font-medium text-left">비밀번호가 틀렸습니다.</p>
+                <p className="mt-2 text-sm text-red-500 font-medium text-left">Incorrect password.</p>
               )}
             </div>
           </div>
@@ -367,50 +360,45 @@ function App() {
     );
   }
 
-  // ── 결과 화면 ────────────────────────────────────────────
   if (recommendation) {
-    const flavorData = flavors[recommendation.flavor] || { category: 'classic', description: '맛있는 요거트' };
+    const flavorData = flavors[recommendation.flavor] || { category: 'classic', description: 'Delicious yogurt flavor' };
     const flavorCategory = flavorCategories[flavorData.category] || flavorCategories.classic;
     const toppingData = toppings[recommendation.topping] || { category: 'candy', icon: '✨' };
 
     return (
       <div style={{ backgroundColor: YL.bg }} className="min-h-screen flex items-center justify-center p-4">
         <div className="bg-white rounded-3xl shadow-xl text-center max-w-lg w-full animate-scaleIn overflow-hidden">
-          {/* 상단 배너 */}
           <div style={{ backgroundColor: YL.primary }} className="px-8 pt-8 pb-6">
             <div className="text-4xl mb-2">🎉</div>
             <div className="text-white/60 text-xs font-bold uppercase tracking-[0.3em] mb-1">Yogurtland</div>
-            <h1 className="text-3xl font-extrabold text-white">추천 결과!</h1>
-            <p className="text-white/70 mt-1 text-sm">당신에게 딱 맞는 조합이에요</p>
+            <h1 className="text-3xl font-extrabold text-white">Your Recommendation!</h1>
+            <p className="text-white/70 mt-1 text-sm">This combo best matches your taste.</p>
           </div>
 
           <div className="p-6 space-y-4">
-            {/* 맛 카드 */}
             <div className="rounded-2xl p-5 text-left" style={{ backgroundColor: YL.primaryLight }}>
               <div className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: YL.primary }}>
-                추천 맛
+                Recommended Flavor
               </div>
               <div className="flex items-center gap-4">
                 <span className="text-5xl">{flavorCategory.icon}</span>
                 <div>
-                  <div className="text-2xl font-extrabold text-gray-800">{recommendation.flavor || '없음'}</div>
+                  <div className="text-2xl font-extrabold text-gray-800">{recommendation.flavor || 'None'}</div>
                   <div className="text-sm text-gray-500 mt-0.5">{flavorData.description}</div>
                 </div>
               </div>
             </div>
 
-            {/* 토핑 카드 */}
             <div className="rounded-2xl p-5 text-left" style={{ backgroundColor: YL.greenLight }}>
               <div className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: YL.green }}>
-                추천 토핑
+                Recommended Topping
               </div>
               <div className="flex items-center gap-4">
                 <span className="text-5xl">{toppingData.icon}</span>
-                <div className="text-2xl font-extrabold text-gray-800">{recommendation.topping || '없음'}</div>
+                <div className="text-2xl font-extrabold text-gray-800">{recommendation.topping || 'None'}</div>
               </div>
             </div>
 
-            {/* 버튼 */}
             <div className="flex gap-3 pt-1">
               <button
                 onClick={resetGame}
@@ -418,14 +406,14 @@ function App() {
                 className="flex-1 text-white px-6 py-3.5 rounded-xl font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
               >
                 <RefreshCw className="w-4 h-4" />
-                다시 하기
+                Try Again
               </button>
               <button
                 onClick={() => { resetGame(); setSelectedStore(null); }}
                 className="flex-1 bg-gray-100 text-gray-600 px-6 py-3.5 rounded-xl font-bold hover:bg-gray-200 transition-colors flex items-center justify-center gap-2"
               >
                 <Store className="w-4 h-4" />
-                매장 변경
+                Change Store
               </button>
             </div>
           </div>
@@ -434,17 +422,15 @@ function App() {
     );
   }
 
-  // ── 퀴즈 화면 ────────────────────────────────────────────
   const progress = ((currentQuestion + 1) / questions.length) * 100;
 
   return (
     <div style={{ backgroundColor: YL.bg }} className="min-h-screen flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl shadow-xl max-w-2xl w-full animate-slideUp overflow-hidden">
-        {/* 헤더 */}
         <div style={{ backgroundColor: YL.primary }} className="px-8 py-5 flex items-center justify-between">
           <div>
             <div className="text-white/60 text-xs font-bold uppercase tracking-widest">Yogurtland</div>
-            <div className="text-white font-extrabold text-lg">맛 테스트</div>
+            <div className="text-white font-extrabold text-lg">Taste Test</div>
           </div>
           <div className="flex items-center gap-1.5 bg-white/20 rounded-full px-3 py-1.5 text-xs text-white font-semibold">
             <Store className="w-3 h-3" />
@@ -453,10 +439,9 @@ function App() {
         </div>
 
         <div className="p-8">
-          {/* 진행도 */}
           <div className="mb-6">
             <div className="flex justify-between text-xs font-semibold text-gray-400 mb-2">
-              <span>질문 {currentQuestion + 1} / {questions.length}</span>
+              <span>Question {currentQuestion + 1} / {questions.length}</span>
               <span>{Math.round(progress)}%</span>
             </div>
             <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
@@ -467,12 +452,10 @@ function App() {
             </div>
           </div>
 
-          {/* 질문 */}
           <div className="rounded-2xl p-6 mb-6 text-center" style={{ backgroundColor: YL.primaryLight }}>
             <p className="text-xl font-bold text-gray-800">{questions[currentQuestion].text}</p>
           </div>
 
-          {/* 선택지 */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
             {questions[currentQuestion].options.map((option, index) => (
               <button
@@ -492,14 +475,13 @@ function App() {
             ))}
           </div>
 
-          {/* 네비게이션 버튼 */}
           <div className="flex gap-2 justify-center flex-wrap">
             <button
               onClick={resetGame}
               className="bg-gray-100 text-gray-500 px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-200 transition-colors flex items-center gap-1.5"
             >
               <RotateCcw className="w-3.5 h-3.5" />
-              처음으로
+              Start Over
             </button>
             <button
               onClick={handlePrevious}
@@ -507,14 +489,14 @@ function App() {
               className="bg-gray-100 text-gray-500 px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-200 transition-colors flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <ChevronLeft className="w-3.5 h-3.5" />
-              이전
+              Previous
             </button>
             <button
               onClick={() => setSelectedStore(null)}
               className="bg-gray-100 text-gray-500 px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-200 transition-colors flex items-center gap-1.5"
             >
               <Store className="w-3.5 h-3.5" />
-              매장 변경
+              Change Store
             </button>
           </div>
         </div>
