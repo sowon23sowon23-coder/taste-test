@@ -4,6 +4,16 @@ import { questions } from './data/questions';
 import { stores as initialStores } from './data/stores';
 import { flavors, flavorCategories, toppings } from './data/flavors';
 
+const YL = {
+  primary: '#960853',
+  primaryDark: '#7a0643',
+  primaryLight: '#FFF0F5',
+  green: '#8DC63F',
+  greenDark: '#72a234',
+  greenLight: '#F2F9E8',
+  bg: '#FFF5F8',
+};
+
 function App() {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedStore, setSelectedStore] = useState(null);
@@ -14,6 +24,7 @@ function App() {
   const [stores, setStores] = useState(initialStores);
   const [editingStore, setEditingStore] = useState(null);
   const [adminStoreSearch, setAdminStoreSearch] = useState('');
+  const [adminError, setAdminError] = useState(false);
   const [answerHistory, setAnswerHistory] = useState([]);
   // eslint-disable-next-line no-unused-vars
   const [userLocation, setUserLocation] = useState(null);
@@ -29,20 +40,17 @@ function App() {
     localStorage.setItem('stores', JSON.stringify(stores));
   }, [stores]);
 
-  const deg2rad = (deg) => {
-    return deg * (Math.PI / 180);
-  };
+  const deg2rad = (deg) => deg * (Math.PI / 180);
 
   const getDistance = (lat1, lon1, lat2, lon2) => {
-    const R = 6371; // Radius of the earth in km
+    const R = 6371;
     const dLat = deg2rad(lat2 - lat1);
     const dLon = deg2rad(lon2 - lon1);
     const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
       Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
       Math.sin(dLon / 2) * Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const d = R * c; // Distance in km
-    return d;
+    return R * c;
   };
 
   const findNearestStore = (userLat, userLng) => {
@@ -101,7 +109,6 @@ function App() {
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
     } else {
-      // 추천 계산
       const availableFlavors = selectedStore ? stores.find(s => s.id === selectedStore).flavors : [];
       const availableToppings = selectedStore ? stores.find(s => s.id === selectedStore).toppings : [];
 
@@ -145,8 +152,9 @@ function App() {
   const handleAdminLogin = () => {
     if (adminPassword === 'admin1234') {
       setIsAdmin(true);
+      setAdminError(false);
     } else {
-      alert('비밀번호가 틀렸습니다.');
+      setAdminError(true);
     }
   };
 
@@ -154,31 +162,38 @@ function App() {
     setStores(stores.map(s => s.id === storeId ? updatedStore : s));
   };
 
+  // ── 관리자 화면 ──────────────────────────────────────────
   if (isAdmin) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-100 to-blue-100 p-8">
+      <div style={{ backgroundColor: YL.bg }} className="min-h-screen p-6">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-3xl shadow-2xl p-8 mb-6 transform hover:scale-[1.01] transition-transform duration-300">
-            <div className="flex items-center gap-3 mb-6">
-              <Store className="w-8 h-8 text-purple-500" />
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                관리자 모드
-              </h1>
+          {/* 헤더 */}
+          <div className="bg-white rounded-2xl shadow-md p-5 mb-5 flex items-center gap-4">
+            <div style={{ backgroundColor: YL.primary }} className="p-3 rounded-xl">
+              <Store className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <div className="text-xs font-bold uppercase tracking-widest" style={{ color: YL.primary }}>Yogurtland</div>
+              <h1 className="text-2xl font-extrabold text-gray-800">관리자 모드</h1>
             </div>
           </div>
 
           {editingStore ? (
-            <div className="bg-white rounded-3xl shadow-2xl p-8 animate-fadeIn">
-              <h2 className="text-3xl font-bold mb-6 text-gray-800">{editingStore.name} 설정</h2>
+            <div className="bg-white rounded-2xl shadow-md p-8 animate-fadeIn">
+              <h2 className="text-2xl font-bold mb-1 text-gray-800">{editingStore.name}</h2>
+              <p className="text-sm text-gray-400 mb-6">판매 중인 맛과 토핑을 선택하세요</p>
 
               <div className="mb-6">
-                <h3 className="text-2xl font-semibold mb-4 text-purple-600 flex items-center gap-2">
-                  <IceCream className="w-6 h-6" />
-                  맛
+                <h3 className="text-base font-bold mb-3 flex items-center gap-2" style={{ color: YL.primary }}>
+                  <IceCream className="w-4 h-4" /> 맛
                 </h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-96 overflow-y-auto">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-80 overflow-y-auto pr-1">
                   {Object.keys(flavors).map(flavor => (
-                    <label key={flavor} className="flex items-center gap-2 p-3 rounded-xl bg-purple-50 hover:bg-purple-100 cursor-pointer transition-colors duration-200">
+                    <label
+                      key={flavor}
+                      className="flex items-center gap-2 p-3 rounded-xl cursor-pointer transition-colors duration-150 select-none"
+                      style={{ backgroundColor: editingStore.flavors.includes(flavor) ? YL.primaryLight : '#F9FAFB' }}
+                    >
                       <input
                         type="checkbox"
                         checked={editingStore.flavors.includes(flavor)}
@@ -188,22 +203,26 @@ function App() {
                             : editingStore.flavors.filter(f => f !== flavor);
                           setEditingStore({ ...editingStore, flavors: newFlavors });
                         }}
-                        className="w-5 h-5 text-purple-500 rounded focus:ring-2 focus:ring-purple-400"
+                        className="w-4 h-4 rounded"
+                        style={{ accentColor: YL.primary }}
                       />
-                      <span className="font-medium text-gray-700">{flavor}</span>
+                      <span className="text-sm font-medium text-gray-700">{flavor}</span>
                     </label>
                   ))}
                 </div>
               </div>
 
               <div className="mb-8">
-                <h3 className="text-2xl font-semibold mb-4 text-pink-600 flex items-center gap-2">
-                  <Sparkles className="w-6 h-6" />
-                  토핑
+                <h3 className="text-base font-bold mb-3 flex items-center gap-2" style={{ color: YL.green }}>
+                  <Sparkles className="w-4 h-4" /> 토핑
                 </h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-96 overflow-y-auto">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-80 overflow-y-auto pr-1">
                   {Object.keys(toppings).map(topping => (
-                    <label key={topping} className="flex items-center gap-2 p-3 rounded-xl bg-pink-50 hover:bg-pink-100 cursor-pointer transition-colors duration-200">
+                    <label
+                      key={topping}
+                      className="flex items-center gap-2 p-3 rounded-xl cursor-pointer transition-colors duration-150 select-none"
+                      style={{ backgroundColor: editingStore.toppings.includes(topping) ? YL.greenLight : '#F9FAFB' }}
+                    >
                       <input
                         type="checkbox"
                         checked={editingStore.toppings.includes(topping)}
@@ -213,54 +232,61 @@ function App() {
                             : editingStore.toppings.filter(t => t !== topping);
                           setEditingStore({ ...editingStore, toppings: newToppings });
                         }}
-                        className="w-5 h-5 text-pink-500 rounded focus:ring-2 focus:ring-pink-400"
+                        className="w-4 h-4 rounded"
+                        style={{ accentColor: YL.green }}
                       />
-                      <span className="font-medium text-gray-700">{topping}</span>
+                      <span className="text-sm font-medium text-gray-700">{topping}</span>
                     </label>
                   ))}
                 </div>
               </div>
 
-              <div className="flex gap-4">
+              <div className="flex gap-3">
                 <button
                   onClick={() => { updateStore(editingStore.id, editingStore); setEditingStore(null); }}
-                  className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-xl font-semibold hover:from-purple-600 hover:to-pink-600 transform hover:scale-105 transition-all duration-200 shadow-lg"
+                  style={{ backgroundColor: YL.primary }}
+                  className="flex-1 text-white px-6 py-3 rounded-xl font-bold hover:opacity-90 transition-opacity"
                 >
                   저장
                 </button>
                 <button
                   onClick={() => setEditingStore(null)}
-                  className="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-semibold hover:bg-gray-300 transform hover:scale-105 transition-all duration-200"
+                  className="flex-1 bg-gray-100 text-gray-600 px-6 py-3 rounded-xl font-bold hover:bg-gray-200 transition-colors"
                 >
                   취소
                 </button>
               </div>
             </div>
           ) : (
-            <div className="space-y-4 animate-fadeIn">
-              <h2 className="text-2xl font-bold mb-4 text-gray-800">매장 선택</h2>
+            <div className="space-y-3 animate-fadeIn">
+              <h2 className="text-xl font-bold text-gray-800">매장 선택</h2>
               <input
                 type="text"
                 placeholder="매장 검색..."
                 value={adminStoreSearch}
                 onChange={(e) => setAdminStoreSearch(e.target.value)}
-                className="w-full p-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:ring-4 focus:ring-purple-100 transition-all duration-200 font-medium text-gray-700 bg-purple-50"
+                className="w-full p-3 border-2 border-gray-200 rounded-xl transition-all duration-200 font-medium text-gray-700 bg-white outline-none focus:border-pink-300"
               />
-              <div className="grid gap-3 max-h-[500px] overflow-y-auto pr-2">
-                {stores.filter(store => store.name.toLowerCase().includes(adminStoreSearch.toLowerCase())).map(store => (
-                  <button
-                    key={store.id}
-                    onClick={() => setEditingStore(store)}
-                    className="bg-white text-left px-6 py-4 rounded-xl font-medium text-gray-800 hover:bg-gradient-to-r hover:from-purple-500 hover:to-pink-500 hover:text-white transform hover:scale-[1.02] transition-all duration-200 shadow-md hover:shadow-xl flex items-center justify-between group"
-                  >
-                    <span>{store.name}</span>
-                    <ChevronRight className="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </button>
-                ))}
+              <div className="grid gap-2 max-h-[500px] overflow-y-auto pr-1">
+                {stores
+                  .filter(store => store.name.toLowerCase().includes(adminStoreSearch.toLowerCase()))
+                  .map(store => (
+                    <button
+                      key={store.id}
+                      onClick={() => setEditingStore(store)}
+                      className="bg-white text-left px-5 py-4 rounded-xl font-medium text-gray-800 transition-all duration-150 shadow-sm hover:shadow-md flex items-center justify-between group"
+                      style={{}}
+                      onMouseEnter={e => { e.currentTarget.style.backgroundColor = YL.primary; e.currentTarget.style.color = 'white'; }}
+                      onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'white'; e.currentTarget.style.color = ''; }}
+                    >
+                      <span>{store.name}</span>
+                      <ChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </button>
+                  ))}
               </div>
               <button
                 onClick={() => setIsAdmin(false)}
-                className="w-full mt-6 bg-gradient-to-r from-red-400 to-red-500 text-white px-6 py-3 rounded-xl font-semibold hover:from-red-500 hover:to-red-600 transform hover:scale-105 transition-all duration-200 shadow-lg"
+                className="w-full mt-2 bg-gray-100 text-gray-500 px-6 py-3 rounded-xl font-semibold hover:bg-gray-200 transition-colors"
               >
                 로그아웃
               </button>
@@ -271,59 +297,135 @@ function App() {
     );
   }
 
+  // ── 매장 선택 화면 ────────────────────────────────────────
   if (!selectedStore) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-200 via-purple-200 to-blue-200 flex items-center justify-center p-4 animate-gradient">
-        <div className="bg-white p-10 rounded-3xl shadow-2xl text-center max-w-md w-full transform hover:scale-[1.02] transition-transform duration-300 animate-slideUp">
-          <div className="mb-6 flex justify-center">
-            <div className="bg-gradient-to-br from-pink-400 to-purple-400 p-6 rounded-full animate-bounce-slow">
-              <IceCream className="w-16 h-16 text-white" />
+      <div style={{ backgroundColor: YL.bg }} className="min-h-screen flex items-center justify-center p-4">
+        <div className="bg-white rounded-3xl shadow-xl text-center max-w-md w-full animate-slideUp overflow-hidden">
+          {/* 상단 배너 */}
+          <div style={{ backgroundColor: YL.primary }} className="px-8 pt-10 pb-8">
+            <div className="text-5xl mb-3">🍦</div>
+            <div className="text-white/60 text-xs font-bold uppercase tracking-[0.3em] mb-1">Yogurtland</div>
+            <h1 className="text-3xl font-extrabold text-white leading-tight">
+              나만의 요거트<br />맛 찾기
+            </h1>
+            <p className="text-white/70 mt-2 text-sm">당신에게 딱 맞는 맛을 찾아드려요!</p>
+          </div>
+
+          <div className="p-8">
+            {/* 매장 선택 */}
+            <div className="mb-4">
+              <label className="block text-left text-sm font-semibold text-gray-500 mb-2 flex items-center gap-1.5">
+                <Store className="w-4 h-4" /> 매장 선택
+              </label>
+              <select
+                onChange={(e) => setSelectedStore(e.target.value)}
+                className="w-full p-4 border-2 border-gray-200 rounded-xl font-medium text-gray-700 bg-gray-50 outline-none transition-all duration-200 focus:border-pink-300 appearance-none"
+              >
+                <option value="">매장을 선택하세요</option>
+                {stores.map(store => (
+                  <option key={store.id} value={store.id}>{store.name}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* 가까운 매장 찾기 */}
+            <button
+              onClick={handleFindNearest}
+              style={{ backgroundColor: YL.green }}
+              className="w-full text-white px-6 py-3.5 rounded-xl font-bold hover:opacity-90 transition-opacity mb-6 flex items-center justify-center gap-2"
+            >
+              <MapPin className="w-4 h-4" />
+              가까운 매장 찾기
+            </button>
+
+            {/* 관리자 로그인 */}
+            <div className="border-t border-gray-100 pt-5">
+              <div className="flex gap-2">
+                <input
+                  type="password"
+                  placeholder="관리자 비밀번호"
+                  value={adminPassword}
+                  onChange={(e) => { setAdminPassword(e.target.value); setAdminError(false); }}
+                  onKeyDown={(e) => e.key === 'Enter' && handleAdminLogin()}
+                  className={`flex-1 p-3 border-2 rounded-xl text-sm outline-none transition-all duration-200 ${adminError ? 'border-red-400' : 'border-gray-200 focus:border-gray-400'}`}
+                />
+                <button
+                  onClick={handleAdminLogin}
+                  className="bg-gray-700 text-white px-5 py-3 rounded-xl text-sm font-bold hover:bg-gray-800 transition-colors"
+                >
+                  관리자
+                </button>
+              </div>
+              {adminError && (
+                <p className="mt-2 text-sm text-red-500 font-medium text-left">비밀번호가 틀렸습니다.</p>
+              )}
             </div>
           </div>
+        </div>
+      </div>
+    );
+  }
 
-          <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 bg-clip-text text-transparent">
-            아이스크림 맛 테스트
-          </h1>
-          <p className="text-gray-600 mb-6 text-lg">당신에게 딱 맞는 맛을 찾아드려요! 🍨</p>
+  // ── 결과 화면 ────────────────────────────────────────────
+  if (recommendation) {
+    const flavorData = flavors[recommendation.flavor] || { category: 'classic', description: '맛있는 요거트' };
+    const flavorCategory = flavorCategories[flavorData.category] || flavorCategories.classic;
+    const toppingData = toppings[recommendation.topping] || { category: 'candy', icon: '✨' };
 
-          <div className="mb-6">
-            <label className="block text-left text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-              <Store className="w-4 h-4" />
-              매장을 선택하세요
-            </label>
-            <select
-              onChange={(e) => setSelectedStore(e.target.value)}
-              className="w-full p-4 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:ring-4 focus:ring-purple-100 transition-all duration-200 font-medium text-gray-700 bg-purple-50 hover:bg-purple-100"
-            >
-              <option value="">매장 선택</option>
-              {stores.map(store => (
-                <option key={store.id} value={store.id}>{store.name}</option>
-              ))}
-            </select>
+    return (
+      <div style={{ backgroundColor: YL.bg }} className="min-h-screen flex items-center justify-center p-4">
+        <div className="bg-white rounded-3xl shadow-xl text-center max-w-lg w-full animate-scaleIn overflow-hidden">
+          {/* 상단 배너 */}
+          <div style={{ backgroundColor: YL.primary }} className="px-8 pt-8 pb-6">
+            <div className="text-4xl mb-2">🎉</div>
+            <div className="text-white/60 text-xs font-bold uppercase tracking-[0.3em] mb-1">Yogurtland</div>
+            <h1 className="text-3xl font-extrabold text-white">추천 결과!</h1>
+            <p className="text-white/70 mt-1 text-sm">당신에게 딱 맞는 조합이에요</p>
           </div>
 
-          <button
-            onClick={handleFindNearest}
-            className="w-full bg-gradient-to-r from-green-400 to-emerald-500 text-white px-6 py-4 rounded-xl font-semibold hover:from-green-500 hover:to-emerald-600 transform hover:scale-105 transition-all duration-200 shadow-lg mb-6 flex items-center justify-center gap-2"
-          >
-            <MapPin className="w-5 h-5" />
-            가까운 매장 찾기
-          </button>
+          <div className="p-6 space-y-4">
+            {/* 맛 카드 */}
+            <div className="rounded-2xl p-5 text-left" style={{ backgroundColor: YL.primaryLight }}>
+              <div className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: YL.primary }}>
+                추천 맛
+              </div>
+              <div className="flex items-center gap-4">
+                <span className="text-5xl">{flavorCategory.icon}</span>
+                <div>
+                  <div className="text-2xl font-extrabold text-gray-800">{recommendation.flavor || '없음'}</div>
+                  <div className="text-sm text-gray-500 mt-0.5">{flavorData.description}</div>
+                </div>
+              </div>
+            </div>
 
-          <div className="border-t-2 border-gray-200 pt-6">
-            <div className="flex gap-2">
-              <input
-                type="password"
-                placeholder="관리자 비밀번호"
-                value={adminPassword}
-                onChange={(e) => setAdminPassword(e.target.value)}
-                className="flex-1 p-3 border-2 border-gray-200 rounded-xl focus:border-gray-400 focus:ring-4 focus:ring-gray-100 transition-all duration-200"
-              />
+            {/* 토핑 카드 */}
+            <div className="rounded-2xl p-5 text-left" style={{ backgroundColor: YL.greenLight }}>
+              <div className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: YL.green }}>
+                추천 토핑
+              </div>
+              <div className="flex items-center gap-4">
+                <span className="text-5xl">{toppingData.icon}</span>
+                <div className="text-2xl font-extrabold text-gray-800">{recommendation.topping || '없음'}</div>
+              </div>
+            </div>
+
+            {/* 버튼 */}
+            <div className="flex gap-3 pt-1">
               <button
-                onClick={handleAdminLogin}
-                className="bg-gray-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-gray-700 transform hover:scale-105 transition-all duration-200 shadow-md"
+                onClick={resetGame}
+                style={{ backgroundColor: YL.primary }}
+                className="flex-1 text-white px-6 py-3.5 rounded-xl font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
               >
-                관리자
+                <RefreshCw className="w-4 h-4" />
+                다시 하기
+              </button>
+              <button
+                onClick={() => { resetGame(); setSelectedStore(null); }}
+                className="flex-1 bg-gray-100 text-gray-600 px-6 py-3.5 rounded-xl font-bold hover:bg-gray-200 transition-colors flex items-center justify-center gap-2"
+              >
+                <Store className="w-4 h-4" />
+                매장 변경
               </button>
             </div>
           </div>
@@ -332,167 +434,89 @@ function App() {
     );
   }
 
-  if (recommendation) {
-    const flavorData = flavors[recommendation.flavor] || { category: "classic", description: "맛있는 요거트" };
-    const flavorCategory = flavorCategories[flavorData.category] || flavorCategories.classic;
-    const toppingData = toppings[recommendation.topping] || { category: "candy", icon: "✨" };
-
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-200 via-purple-200 to-blue-200 flex items-center justify-center p-4 animate-gradient">
-        <div className="bg-white p-10 rounded-3xl shadow-2xl text-center max-w-2xl w-full animate-scaleIn">
-          <div className="mb-6 flex justify-center">
-            <div className="bg-gradient-to-br from-yellow-400 to-orange-400 p-6 rounded-full animate-spin-slow">
-              <Sparkles className="w-20 h-20 text-white" />
-            </div>
-          </div>
-
-          <h1 className="text-5xl font-bold mb-3 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 bg-clip-text text-transparent">
-            추천 결과!
-          </h1>
-          <p className="text-gray-600 mb-8 text-lg">당신에게 딱 맞는 조합이에요! 🎉</p>
-
-          {/* Flavor Card */}
-          <div className="mb-6">
-            <div className={`bg-gradient-to-br ${flavorCategory.color} p-8 rounded-3xl shadow-2xl transform hover:scale-[1.02] transition-all duration-300 border-4 border-white`}>
-              <div className="flex items-center justify-center gap-3 mb-4">
-                <span className="text-6xl">{flavorCategory.icon}</span>
-              </div>
-              <div className="bg-white/90 backdrop-blur-sm p-6 rounded-2xl">
-                <p className="text-sm font-bold text-gray-600 uppercase tracking-wider mb-2">
-                  {flavorCategory.name} Flavor
-                </p>
-                <p className="text-4xl font-bold text-gray-800 mb-2">
-                  {recommendation.flavor || '없음'}
-                </p>
-                <p className="text-gray-600 text-lg">
-                  {flavorData.description}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Topping Card */}
-          <div className="mb-8">
-            <div className="bg-gradient-to-br from-pink-300 to-purple-300 p-6 rounded-3xl shadow-xl transform hover:scale-[1.02] transition-all duration-300 border-4 border-white">
-              <div className="bg-white/90 backdrop-blur-sm p-6 rounded-2xl">
-                <div className="flex items-center justify-center gap-3 mb-3">
-                  <span className="text-4xl">{toppingData.icon}</span>
-                  <Sparkles className="w-6 h-6 text-purple-500" />
-                </div>
-                <p className="text-sm font-bold text-gray-600 uppercase tracking-wider mb-2">
-                  Recommended Topping
-                </p>
-                <p className="text-3xl font-bold text-gray-800">
-                  {recommendation.topping || '없음'}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex gap-4">
-            <button
-              onClick={resetGame}
-              className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-4 rounded-xl font-semibold hover:from-purple-600 hover:to-pink-600 transform hover:scale-105 transition-all duration-200 shadow-lg flex items-center justify-center gap-2"
-            >
-              <RefreshCw className="w-5 h-5" />
-              다시 하기
-            </button>
-            <button
-              onClick={() => { resetGame(); setSelectedStore(null); }}
-              className="flex-1 bg-gradient-to-r from-gray-500 to-gray-600 text-white px-6 py-4 rounded-xl font-semibold hover:from-gray-600 hover:to-gray-700 transform hover:scale-105 transition-all duration-200 shadow-lg flex items-center justify-center gap-2"
-            >
-              <Store className="w-5 h-5" />
-              매장 변경
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
+  // ── 퀴즈 화면 ────────────────────────────────────────────
   const progress = ((currentQuestion + 1) / questions.length) * 100;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-200 via-purple-200 to-blue-200 flex items-center justify-center p-4 animate-gradient">
-      <div className="bg-white p-10 rounded-3xl shadow-2xl text-center max-w-2xl w-full animate-slideUp">
-        <div className="mb-6 flex justify-center">
-          <div className="bg-gradient-to-br from-pink-400 to-purple-400 p-4 rounded-full">
-            <IceCream className="w-12 h-12 text-white" />
+    <div style={{ backgroundColor: YL.bg }} className="min-h-screen flex items-center justify-center p-4">
+      <div className="bg-white rounded-3xl shadow-xl max-w-2xl w-full animate-slideUp overflow-hidden">
+        {/* 헤더 */}
+        <div style={{ backgroundColor: YL.primary }} className="px-8 py-5 flex items-center justify-between">
+          <div>
+            <div className="text-white/60 text-xs font-bold uppercase tracking-widest">Yogurtland</div>
+            <div className="text-white font-extrabold text-lg">맛 테스트</div>
+          </div>
+          <div className="flex items-center gap-1.5 bg-white/20 rounded-full px-3 py-1.5 text-xs text-white font-semibold">
+            <Store className="w-3 h-3" />
+            {stores.find(s => s.id === selectedStore)?.name}
           </div>
         </div>
 
-        <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 bg-clip-text text-transparent">
-          아이스크림 맛 테스트
-        </h1>
-
-        <div className="flex items-center justify-center gap-2 mb-6 bg-purple-50 border border-purple-200 rounded-full px-4 py-2 text-sm font-semibold text-purple-700">
-          <Store className="w-4 h-4" />
-          {stores.find(s => s.id === selectedStore)?.name}
-        </div>
-
-        {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="flex justify-between text-sm font-semibold text-gray-600 mb-2">
-            <span>질문 {currentQuestion + 1} / {questions.length}</span>
-            <span>{Math.round(progress)}%</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden shadow-inner">
-            <div
-              className="h-full bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 rounded-full transition-all duration-500 ease-out relative overflow-hidden"
-              style={{ width: `${progress}%` }}
-            >
-              <div className="absolute inset-0 bg-white opacity-20 animate-shimmer"></div>
+        <div className="p-8">
+          {/* 진행도 */}
+          <div className="mb-6">
+            <div className="flex justify-between text-xs font-semibold text-gray-400 mb-2">
+              <span>질문 {currentQuestion + 1} / {questions.length}</span>
+              <span>{Math.round(progress)}%</span>
+            </div>
+            <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-500 ease-out"
+                style={{ width: `${progress}%`, backgroundColor: YL.primary }}
+              />
             </div>
           </div>
-        </div>
 
-        <div className="bg-gradient-to-r from-pink-50 to-purple-50 p-8 rounded-2xl mb-8 border-2 border-purple-200">
-          <p className="text-2xl font-semibold text-gray-800">{questions[currentQuestion].text}</p>
-        </div>
+          {/* 질문 */}
+          <div className="rounded-2xl p-6 mb-6 text-center" style={{ backgroundColor: YL.primaryLight }}>
+            <p className="text-xl font-bold text-gray-800">{questions[currentQuestion].text}</p>
+          </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          {questions[currentQuestion].options.map((option, index) => (
-            <button
-              key={index}
-              onClick={() => handleAnswer(index)}
-              className="bg-gradient-to-br from-purple-400 to-pink-400 text-white px-6 py-6 rounded-2xl font-bold text-lg hover:from-purple-500 hover:to-pink-500 transform hover:scale-105 transition-all duration-200 shadow-lg group text-left relative overflow-hidden"
-            >
-              <div className="absolute top-0 right-0 p-4">
-                <Sparkles className="w-6 h-6 group-hover:animate-bounce opacity-70" />
-              </div>
-              <div className="relative z-10">
-                <div className="text-2xl font-bold mb-2">{option.label}</div>
+          {/* 선택지 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+            {questions[currentQuestion].options.map((option, index) => (
+              <button
+                key={index}
+                onClick={() => handleAnswer(index)}
+                style={{ backgroundColor: YL.primary }}
+                className="text-white px-6 py-5 rounded-2xl font-bold text-base hover:opacity-90 active:scale-95 transition-all duration-150 shadow-md text-left relative overflow-hidden group"
+              >
+                <div className="absolute top-3 right-3 opacity-20 group-hover:opacity-50 transition-opacity">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <div className="text-lg font-extrabold mb-1 leading-tight">{option.label}</div>
                 {option.description && (
-                  <div className="text-sm opacity-90 font-normal">{option.description}</div>
+                  <div className="text-sm opacity-75 font-normal">{option.description}</div>
                 )}
-              </div>
-            </button>
-          ))}
-        </div>
+              </button>
+            ))}
+          </div>
 
-        <div className="flex gap-3 justify-center flex-wrap">
-          <button
-            onClick={resetGame}
-            className="bg-gray-100 text-gray-600 px-5 py-3 rounded-xl font-semibold hover:bg-gray-200 transform hover:scale-105 transition-all duration-200 flex items-center gap-2"
-          >
-            <RotateCcw className="w-4 h-4" />
-            처음으로
-          </button>
-          <button
-            onClick={handlePrevious}
-            disabled={currentQuestion === 0}
-            className="bg-gray-100 text-gray-600 px-5 py-3 rounded-xl font-semibold hover:bg-gray-200 transform hover:scale-105 transition-all duration-200 flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            이전
-          </button>
-          <button
-            onClick={() => setSelectedStore(null)}
-            className="bg-gray-100 text-gray-600 px-5 py-3 rounded-xl font-semibold hover:bg-gray-200 transform hover:scale-105 transition-all duration-200 flex items-center gap-2"
-          >
-            <Store className="w-4 h-4" />
-            매장 변경
-          </button>
+          {/* 네비게이션 버튼 */}
+          <div className="flex gap-2 justify-center flex-wrap">
+            <button
+              onClick={resetGame}
+              className="bg-gray-100 text-gray-500 px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-200 transition-colors flex items-center gap-1.5"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              처음으로
+            </button>
+            <button
+              onClick={handlePrevious}
+              disabled={currentQuestion === 0}
+              className="bg-gray-100 text-gray-500 px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-200 transition-colors flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" />
+              이전
+            </button>
+            <button
+              onClick={() => setSelectedStore(null)}
+              className="bg-gray-100 text-gray-500 px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-200 transition-colors flex items-center gap-1.5"
+            >
+              <Store className="w-3.5 h-3.5" />
+              매장 변경
+            </button>
+          </div>
         </div>
       </div>
     </div>
