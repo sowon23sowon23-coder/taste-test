@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { IceCream, MapPin, Sparkles, Store, ChevronRight, RefreshCw, ChevronLeft, RotateCcw, Home } from 'lucide-react';
 import { questions } from './data/questions';
 import { stores as initialStores } from './data/stores';
@@ -179,7 +179,7 @@ function App() {
               className="flex items-center gap-2 bg-gray-100 text-gray-600 px-4 py-2.5 rounded-xl font-semibold hover:bg-gray-200 transition-colors text-sm"
             >
               <Home className="w-4 h-4" />
-              홈 화면으로
+              Home
             </button>
           </div>
 
@@ -307,7 +307,7 @@ function App() {
       <div style={{ backgroundColor: YL.bg }} className="min-h-screen flex items-center justify-center p-4">
         <div className="bg-white rounded-3xl shadow-xl text-center max-w-md w-full animate-slideUp overflow-hidden">
           <div style={{ backgroundColor: YL.primary }} className="px-8 pt-10 pb-8">
-            <div className="text-5xl mb-3">🍦</div>
+            <div className="text-5xl mb-3">?뜣</div>
             <div className="text-white/60 text-xs font-bold uppercase tracking-[0.3em] mb-1">Yogurtland</div>
             <h1 className="text-3xl font-extrabold text-white leading-tight">
               Find Your Perfect<br />Yogurt Flavor
@@ -370,13 +370,13 @@ function App() {
   if (recommendation) {
     const flavorData = flavors[recommendation.flavor] || { category: 'classic', description: 'Delicious yogurt flavor' };
     const flavorCategory = flavorCategories[flavorData.category] || flavorCategories.classic;
-    const toppingData = toppings[recommendation.topping] || { category: 'candy', icon: '✨' };
+    const toppingData = toppings[recommendation.topping] || { category: 'candy', icon: '?? };
 
     return (
       <div style={{ backgroundColor: YL.bg }} className="min-h-screen flex items-center justify-center p-4">
         <div className="bg-white rounded-3xl shadow-xl text-center max-w-lg w-full animate-scaleIn overflow-hidden">
           <div style={{ backgroundColor: YL.primary }} className="px-8 pt-8 pb-6">
-            <div className="text-4xl mb-2">🎉</div>
+            <div className="text-4xl mb-2">?럦</div>
             <div className="text-white/60 text-xs font-bold uppercase tracking-[0.3em] mb-1">Yogurtland</div>
             <h1 className="text-3xl font-extrabold text-white">Your Recommendation!</h1>
             <p className="text-white/70 mt-1 text-sm">This combo best matches your taste.</p>
@@ -513,3 +513,4 @@ function App() {
 }
 
 export default App;
+
