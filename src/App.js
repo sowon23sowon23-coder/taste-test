@@ -439,6 +439,16 @@ function App() {
                 Change Store
               </button>
             </div>
+
+            <a
+              href="https://www.yogurtland.com/flavorfinder"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: YL.primary }}
+              className="inline-flex items-center justify-center w-full px-6 py-3 rounded-xl font-bold border-2 transition-colors hover:bg-pink-50"
+            >
+              Flavor Finder
+            </a>
           </div>
         </div>
       </div>
