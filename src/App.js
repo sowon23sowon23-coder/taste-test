@@ -308,7 +308,12 @@ function App() {
       <div style={{ backgroundColor: YL.bg }} className="min-h-screen flex items-center justify-center p-4">
         <div className="bg-white rounded-3xl shadow-xl text-center max-w-md w-full animate-slideUp overflow-hidden">
           <div style={{ backgroundColor: YL.primary }} className="px-8 pt-10 pb-8">
-            <div className="text-white/70 text-xs font-bold uppercase tracking-[0.2em] mb-1">YOGURTLAND</div>
+            <img
+              src="/yogurtland-logo.png"
+              alt="Yogurtland"
+              className="h-6 mx-auto mb-2 object-contain"
+              style={{ filter: 'brightness(0) invert(1)', opacity: 0.9 }}
+            />
             <h1 className="text-3xl font-extrabold leading-tight text-white">
               Find Your Perfect<br />Yogurt Flavor
             </h1>
