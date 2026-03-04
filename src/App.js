@@ -307,16 +307,16 @@ function App() {
     return (
       <div style={{ backgroundColor: YL.bg }} className="min-h-screen flex items-center justify-center p-4">
         <div className="bg-white rounded-3xl shadow-xl text-center max-w-md w-full animate-slideUp overflow-hidden">
-          <div style={{ backgroundColor: YL.greenDark }} className="px-8 pt-10 pb-8">
+          <div style={{ backgroundColor: '#FFFFFF' }} className="px-8 pt-10 pb-8">
             <img
               src="/yogurtland-logo.png"
               alt="Yogurtland"
               className="h-12 mx-auto mb-4 object-contain"
             />
-            <h1 className="text-3xl font-extrabold text-white leading-tight">
+            <h1 className="text-3xl font-extrabold leading-tight" style={{ color: YL.primary }}>
               Find Your Perfect<br />Yogurt Flavor
             </h1>
-            <p className="text-white/70 mt-2 text-sm">We will match you with your best combo.</p>
+            <p className="mt-2 text-sm" style={{ color: YL.primaryDark }}>We will match you with your best combo.</p>
           </div>
 
           <div className="p-8">
@@ -379,14 +379,14 @@ function App() {
     return (
       <div style={{ backgroundColor: YL.bg }} className="min-h-screen flex items-center justify-center p-4">
         <div className="bg-white rounded-3xl shadow-xl text-center max-w-lg w-full animate-scaleIn overflow-hidden">
-          <div style={{ backgroundColor: YL.greenDark }} className="px-8 pt-8 pb-6">
+          <div style={{ backgroundColor: '#FFFFFF' }} className="px-8 pt-8 pb-6">
             <img
               src="/yogurtland-logo.png"
               alt="Yogurtland"
               className="h-12 mx-auto mb-4 object-contain"
             />
-            <h1 className="text-3xl font-extrabold text-white">Your Recommendation!</h1>
-            <p className="text-white/70 mt-1 text-sm">This combo best matches your taste.</p>
+            <h1 className="text-3xl font-extrabold" style={{ color: YL.primary }}>Your Recommendation!</h1>
+            <p className="mt-1 text-sm" style={{ color: YL.primaryDark }}>This combo best matches your taste.</p>
           </div>
 
           <div className="p-6 space-y-4">
