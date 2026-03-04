@@ -3,6 +3,7 @@ import { IceCream, MapPin, Sparkles, Store, ChevronRight, RefreshCw, ChevronLeft
 import { questions } from './data/questions';
 import { stores as initialStores } from './data/stores';
 import { flavors, flavorCategories, toppings } from './data/flavors';
+import geocodedStores from './data/stores.json';
 
 const YL = {
   primary: '#960853',
@@ -12,6 +13,25 @@ const YL = {
   greenDark: '#72a234',
   greenLight: '#F2F9E8',
   bg: '#FFF5F8',
+};
+
+const CITY_ALIAS_MAP = {
+  'los angeles': ['USC GATEWAY', 'MIRACLE MILE', 'CULVER CITY'],
+  'rancho cucamonga': ['RIO RANCHO', 'RANCHO MISSION VIEJO'],
+  'redlands': ['RIVERSIDE', 'CHINO HILLS'],
+  'redondo beach': ['MANHATTAN BEACH'],
+  'san diego': ['SDSU', 'MIRA MESA'],
+  'seal beach': ['CERRITOS'],
+  'stockton': ['PLEASANT HILL'],
+  'torrance': ['MANHATTAN BEACH'],
+  'arvada': ['CO104', 'CO103', 'CO102', 'CO101'],
+  'denver': ['CO104', 'CO103', 'CO102', 'CO101'],
+  'littleton': ['CO104', 'CO103', 'CO102', 'CO101'],
+  'cypress': ['WESTCHASE', 'MEMORIAL CITY'],
+  'fort worth': ['FT. WORTH'],
+  'houston': ['WESTCHASE', 'MEMORIAL CITY'],
+  'st. george': ['RED ROCK COMMONS', 'OREM'],
+  'west jordan': ['JORDAN LANDING']
 };
 
 function App() {
@@ -26,6 +46,7 @@ function App() {
   const [adminStoreSearch, setAdminStoreSearch] = useState('');
   const [adminError, setAdminError] = useState(false);
   const [answerHistory, setAnswerHistory] = useState([]);
+  const [isLocating, setIsLocating] = useState(false);
   // eslint-disable-next-line no-unused-vars
   const [userLocation, setUserLocation] = useState(null);
 
@@ -40,26 +61,37 @@ function App() {
     localStorage.setItem('stores', JSON.stringify(stores));
   }, [stores]);
 
-  const deg2rad = (deg) => deg * (Math.PI / 180);
+  const getStoreKey = (store) => store.id ?? store.name;
+  const getStoreLon = (store) => (store.lon ?? store.lng);
+  const findStoreByKey = (key) => stores.find((store) => getStoreKey(store) === key);
+  const getCityFromName = (name = '') => name.split(',')[0].trim().toLowerCase();
 
   const getDistance = (lat1, lon1, lat2, lon2) => {
     const R = 6371;
-    const dLat = deg2rad(lat2 - lat1);
-    const dLon = deg2rad(lon2 - lon1);
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-      Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) ** 2 +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   };
 
-  const findNearestStore = (userLat, userLng) => {
-    const storesWithCoords = stores.filter(store => store.lat && store.lng);
-    if (storesWithCoords.length === 0) return null;
+  const findNearestStore = (userLat, userLon) => {
+    const storesWithCoords = geocodedStores.filter((store) =>
+      Number.isFinite(store.lat) && Number.isFinite(store.lon)
+    );
+
+    const fallbackStores = stores.filter((store) =>
+      Number.isFinite(store.lat) && Number.isFinite(getStoreLon(store))
+    ).map((store) => ({ name: store.name, lat: store.lat, lon: getStoreLon(store) }));
+
+    const candidates = storesWithCoords.length > 0 ? storesWithCoords : fallbackStores;
+    if (candidates.length === 0) return null;
+
     let nearest = null;
     let minDistance = Infinity;
-    storesWithCoords.forEach(store => {
-      const distance = getDistance(userLat, userLng, store.lat, store.lng);
+    candidates.forEach((store) => {
+      const distance = getDistance(userLat, userLon, store.lat, store.lon);
       if (distance < minDistance) {
         minDistance = distance;
         nearest = store;
@@ -68,26 +100,69 @@ function App() {
     return nearest;
   };
 
+  const findAppStoreFromGeoStore = (geoStore) => {
+    if (!geoStore?.name) return null;
+    const geoCity = getCityFromName(geoStore.name);
+    const directMatch = stores.find((store) =>
+      (store.name || '').toLowerCase().includes(geoCity)
+    );
+    if (directMatch) return directMatch;
+
+    const aliases = CITY_ALIAS_MAP[geoCity] || [];
+    for (const alias of aliases) {
+      const aliasUpper = alias.toUpperCase();
+      const aliasMatch = stores.find((store) =>
+        (store.id || '').toUpperCase() === aliasUpper ||
+        (store.name || '').toUpperCase().includes(aliasUpper)
+      );
+      if (aliasMatch) return aliasMatch;
+    }
+
+    return null;
+  };
+
   const handleFindNearest = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          setUserLocation({ lat: latitude, lng: longitude });
-          const nearest = findNearestStore(latitude, longitude);
-          if (nearest) {
-            setSelectedStore(nearest.id);
-          } else {
-            alert('No nearby stores found.');
-          }
-        },
-        () => {
+    if (isLocating) return;
+    if (!navigator.geolocation) {
+      alert('Geolocation is not supported in this browser.');
+      return;
+    }
+
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setUserLocation({ lat: latitude, lon: longitude });
+        const nearestGeoStore = findNearestStore(latitude, longitude);
+        if (!nearestGeoStore) {
+          alert('No nearby stores found.');
+          setIsLocating(false);
+          return;
+        }
+
+        const nearestAppStore = findAppStoreFromGeoStore(nearestGeoStore);
+        if (!nearestAppStore) {
+          alert('No nearby stores found.');
+          setIsLocating(false);
+          return;
+        }
+
+        setSelectedStore(getStoreKey(nearestAppStore));
+        setIsLocating(false);
+      },
+      (error) => {
+        if (error.code === error.PERMISSION_DENIED) {
+          alert('Please allow location access');
+        } else {
           alert('Unable to retrieve your location.');
         }
-      );
-    } else {
-      alert('Geolocation is not supported in this browser.');
-    }
+        setIsLocating(false);
+      }
+    );
+  };
+
+  const updateStore = (storeId, updatedStore) => {
+    setStores(stores.map(s => s.id === storeId ? updatedStore : s));
   };
 
   const handleAnswer = (optionIndex) => {
@@ -109,8 +184,9 @@ function App() {
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
     } else {
-      const availableFlavors = selectedStore ? stores.find(s => s.id === selectedStore).flavors : [];
-      const availableToppings = selectedStore ? stores.find(s => s.id === selectedStore).toppings : [];
+      const selectedStoreData = selectedStore ? findStoreByKey(selectedStore) : null;
+      const availableFlavors = selectedStoreData ? selectedStoreData.flavors : [];
+      const availableToppings = selectedStoreData ? selectedStoreData.toppings : [];
 
       const topFlavor = Object.keys(newScores.flavors)
         .filter(f => availableFlavors.includes(f))
@@ -157,10 +233,6 @@ function App() {
     } else {
       setAdminError(true);
     }
-  };
-
-  const updateStore = (storeId, updatedStore) => {
-    setStores(stores.map(s => s.id === storeId ? updatedStore : s));
   };
 
   if (isAdmin) {
@@ -326,23 +398,25 @@ function App() {
                 <Store className="w-4 h-4" /> Select Store
               </label>
               <select
+                value={selectedStore || ''}
                 onChange={(e) => setSelectedStore(e.target.value)}
                 className="w-full p-4 border-2 border-gray-200 rounded-xl font-medium text-gray-700 bg-gray-50 outline-none transition-all duration-200 focus:border-pink-300 appearance-none"
               >
                 <option value="">Choose a store</option>
                 {stores.map(store => (
-                  <option key={store.id} value={store.id}>{store.name}</option>
+                  <option key={getStoreKey(store)} value={getStoreKey(store)}>{store.name}</option>
                 ))}
               </select>
             </div>
 
             <button
               onClick={handleFindNearest}
+              disabled={isLocating}
               style={{ backgroundColor: YL.green }}
-              className="w-full text-white px-6 py-3.5 rounded-xl font-bold hover:opacity-90 transition-opacity mb-6 flex items-center justify-center gap-2"
+              className="w-full text-white px-6 py-3.5 rounded-xl font-bold hover:opacity-90 transition-opacity mb-6 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              <MapPin className="w-4 h-4" />
-              Find Nearest Store
+              {isLocating ? <RefreshCw className="w-4 h-4 animate-spin" /> : <MapPin className="w-4 h-4" />}
+              {isLocating ? 'Finding nearest store...' : 'Find Nearest Store'}
             </button>
 
             <div className="border-t border-gray-100 pt-5">
@@ -468,7 +542,7 @@ function App() {
           </div>
           <div className="flex items-center gap-1.5 bg-white/20 rounded-full px-3 py-1.5 text-xs text-white font-semibold">
             <Store className="w-3 h-3" />
-            {stores.find(s => s.id === selectedStore)?.name}
+            {findStoreByKey(selectedStore)?.name}
           </div>
         </div>
 
