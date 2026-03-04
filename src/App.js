@@ -43,6 +43,7 @@ function App() {
   const [adminPassword, setAdminPassword] = useState('');
   const [stores, setStores] = useState(initialStores);
   const [editingStore, setEditingStore] = useState(null);
+  const [homeStoreSearch, setHomeStoreSearch] = useState('');
   const [adminStoreSearch, setAdminStoreSearch] = useState('');
   const [adminError, setAdminError] = useState(false);
   const [answerHistory, setAnswerHistory] = useState([]);
@@ -65,6 +66,9 @@ function App() {
   const getStoreLon = (store) => (store.lon ?? store.lng);
   const findStoreByKey = (key) => stores.find((store) => getStoreKey(store) === key);
   const getCityFromName = (name = '') => name.split(',')[0].trim().toLowerCase();
+  const filteredHomeStores = stores.filter((store) =>
+    (store.name || '').toLowerCase().includes(homeStoreSearch.toLowerCase())
+  );
 
   const getDistance = (lat1, lon1, lat2, lon2) => {
     const R = 6371;
@@ -397,16 +401,26 @@ function App() {
               <label className="block text-left text-sm font-semibold text-gray-500 mb-2 flex items-center gap-1.5">
                 <Store className="w-4 h-4" /> Select Store
               </label>
+              <input
+                type="text"
+                placeholder="Search stores..."
+                value={homeStoreSearch}
+                onChange={(e) => setHomeStoreSearch(e.target.value)}
+                className="w-full mb-2 p-3 border-2 border-gray-200 rounded-xl text-sm outline-none transition-all duration-200 focus:border-pink-300"
+              />
               <select
                 value={selectedStore || ''}
                 onChange={(e) => setSelectedStore(e.target.value)}
                 className="w-full p-4 border-2 border-gray-200 rounded-xl font-medium text-gray-700 bg-gray-50 outline-none transition-all duration-200 focus:border-pink-300 appearance-none"
               >
                 <option value="">Choose a store</option>
-                {stores.map(store => (
+                {filteredHomeStores.map(store => (
                   <option key={getStoreKey(store)} value={getStoreKey(store)}>{store.name}</option>
                 ))}
               </select>
+              {filteredHomeStores.length === 0 && (
+                <p className="mt-2 text-sm text-gray-500 text-left">No stores match your search.</p>
+              )}
             </div>
 
             <button
