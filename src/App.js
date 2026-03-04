@@ -308,8 +308,11 @@ function App() {
       <div style={{ backgroundColor: YL.bg }} className="min-h-screen flex items-center justify-center p-4">
         <div className="bg-white rounded-3xl shadow-xl text-center max-w-md w-full animate-slideUp overflow-hidden">
           <div style={{ backgroundColor: YL.primary }} className="px-8 pt-10 pb-8">
-            <div className="text-5xl mb-3">🍦</div>
-            <div className="text-white/60 text-xs font-bold uppercase tracking-[0.3em] mb-1">Yogurtland</div>
+            <img
+              src="/yogurtland-logo.png"
+              alt="Yogurtland"
+              className="h-12 mx-auto mb-4 object-contain"
+            />
             <h1 className="text-3xl font-extrabold text-white leading-tight">
               Find Your Perfect<br />Yogurt Flavor
             </h1>
@@ -377,8 +380,11 @@ function App() {
       <div style={{ backgroundColor: YL.bg }} className="min-h-screen flex items-center justify-center p-4">
         <div className="bg-white rounded-3xl shadow-xl text-center max-w-lg w-full animate-scaleIn overflow-hidden">
           <div style={{ backgroundColor: YL.primary }} className="px-8 pt-8 pb-6">
-            <div className="text-4xl mb-2">?럦</div>
-            <div className="text-white/60 text-xs font-bold uppercase tracking-[0.3em] mb-1">Yogurtland</div>
+            <img
+              src="/yogurtland-logo.png"
+              alt="Yogurtland"
+              className="h-12 mx-auto mb-4 object-contain"
+            />
             <h1 className="text-3xl font-extrabold text-white">Your Recommendation!</h1>
             <p className="text-white/70 mt-1 text-sm">This combo best matches your taste.</p>
           </div>
