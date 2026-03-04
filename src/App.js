@@ -307,16 +307,12 @@ function App() {
     return (
       <div style={{ backgroundColor: YL.bg }} className="min-h-screen flex items-center justify-center p-4">
         <div className="bg-white rounded-3xl shadow-xl text-center max-w-md w-full animate-slideUp overflow-hidden">
-          <div style={{ backgroundColor: '#FFFFFF' }} className="px-8 pt-10 pb-8">
-            <img
-              src="/yogurtland-logo.png"
-              alt="Yogurtland"
-              className="h-12 mx-auto mb-4 object-contain"
-            />
-            <h1 className="text-3xl font-extrabold leading-tight" style={{ color: YL.primary }}>
+          <div style={{ backgroundColor: YL.primary }} className="px-8 pt-10 pb-8">
+            <div className="text-white/70 text-xs font-bold uppercase tracking-[0.2em] mb-1">YOGURTLAND</div>
+            <h1 className="text-3xl font-extrabold leading-tight text-white">
               Find Your Perfect<br />Yogurt Flavor
             </h1>
-            <p className="mt-2 text-sm" style={{ color: YL.primaryDark }}>We will match you with your best combo.</p>
+            <p className="mt-2 text-sm text-white/80">We will match you with your best combo.</p>
           </div>
 
           <div className="p-8">
