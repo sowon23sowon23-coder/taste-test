@@ -43,7 +43,8 @@ function App() {
   const [adminPassword, setAdminPassword] = useState('');
   const [stores, setStores] = useState(initialStores);
   const [editingStore, setEditingStore] = useState(null);
-  const [homeStoreSearch, setHomeStoreSearch] = useState('');
+  const [homeStoreQuery, setHomeStoreQuery] = useState('');
+  const [isHomeStoreOpen, setIsHomeStoreOpen] = useState(false);
   const [adminStoreSearch, setAdminStoreSearch] = useState('');
   const [adminError, setAdminError] = useState(false);
   const [answerHistory, setAnswerHistory] = useState([]);
@@ -66,9 +67,10 @@ function App() {
   const getStoreLon = (store) => (store.lon ?? store.lng);
   const findStoreByKey = (key) => stores.find((store) => getStoreKey(store) === key);
   const getCityFromName = (name = '') => name.split(',')[0].trim().toLowerCase();
+  const normalizedHomeStoreQuery = homeStoreQuery.trim().toLowerCase();
   const filteredHomeStores = stores.filter((store) =>
-    (store.name || '').toLowerCase().includes(homeStoreSearch.toLowerCase())
-  );
+    (store.name || '').toLowerCase().includes(normalizedHomeStoreQuery)
+  ).slice(0, 8);
 
   const getDistance = (lat1, lon1, lat2, lon2) => {
     const R = 6371;
@@ -152,6 +154,8 @@ function App() {
         }
 
         setSelectedStore(getStoreKey(nearestAppStore));
+        setHomeStoreQuery(nearestAppStore.name || '');
+        setIsHomeStoreOpen(false);
         setIsLocating(false);
       },
       (error) => {
@@ -401,26 +405,51 @@ function App() {
               <label className="block text-left text-sm font-semibold text-gray-500 mb-2 flex items-center gap-1.5">
                 <Store className="w-4 h-4" /> Select Store
               </label>
-              <input
-                type="text"
-                placeholder="Search stores..."
-                value={homeStoreSearch}
-                onChange={(e) => setHomeStoreSearch(e.target.value)}
-                className="w-full mb-2 p-3 border-2 border-gray-200 rounded-xl text-sm outline-none transition-all duration-200 focus:border-pink-300"
-              />
-              <select
-                value={selectedStore || ''}
-                onChange={(e) => setSelectedStore(e.target.value)}
-                className="w-full p-4 border-2 border-gray-200 rounded-xl font-medium text-gray-700 bg-gray-50 outline-none transition-all duration-200 focus:border-pink-300 appearance-none"
-              >
-                <option value="">Choose a store</option>
-                {filteredHomeStores.map(store => (
-                  <option key={getStoreKey(store)} value={getStoreKey(store)}>{store.name}</option>
-                ))}
-              </select>
-              {filteredHomeStores.length === 0 && (
-                <p className="mt-2 text-sm text-gray-500 text-left">No stores match your search.</p>
-              )}
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Choose a store"
+                  value={homeStoreQuery}
+                  onFocus={() => setIsHomeStoreOpen(true)}
+                  onBlur={() => setTimeout(() => setIsHomeStoreOpen(false), 120)}
+                  onChange={(e) => {
+                    setHomeStoreQuery(e.target.value);
+                    setIsHomeStoreOpen(true);
+                    setSelectedStore(null);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && filteredHomeStores.length > 0) {
+                      const first = filteredHomeStores[0];
+                      setSelectedStore(getStoreKey(first));
+                      setHomeStoreQuery(first.name || '');
+                      setIsHomeStoreOpen(false);
+                    }
+                  }}
+                  className="w-full p-4 border-2 border-gray-200 rounded-xl font-medium text-gray-700 bg-gray-50 outline-none transition-all duration-200 focus:border-pink-300"
+                />
+                {isHomeStoreOpen && (
+                  <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg">
+                    {filteredHomeStores.length > 0 ? (
+                      filteredHomeStores.map((store) => (
+                        <button
+                          key={getStoreKey(store)}
+                          type="button"
+                          onClick={() => {
+                            setSelectedStore(getStoreKey(store));
+                            setHomeStoreQuery(store.name || '');
+                            setIsHomeStoreOpen(false);
+                          }}
+                          className="w-full px-4 py-2.5 text-left text-gray-700 hover:bg-gray-100 transition-colors"
+                        >
+                          {store.name}
+                        </button>
+                      ))
+                    ) : (
+                      <div className="px-4 py-3 text-sm text-gray-500">No stores match your search.</div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
 
             <button
