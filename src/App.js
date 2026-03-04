@@ -577,7 +577,7 @@ function App() {
 
   return (
     <div style={{ backgroundColor: YL.bg }} className="min-h-screen flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl shadow-xl max-w-2xl w-full animate-slideUp overflow-hidden">
+      <div className="bg-white rounded-3xl shadow-xl max-w-xl w-full animate-slideUp overflow-hidden">
         <div style={{ backgroundColor: YL.primary }} className="px-8 py-5 flex items-center justify-between">
           <div>
             <div className="text-white/60 text-xs font-bold uppercase tracking-widest">Yogurtland</div>
@@ -589,7 +589,7 @@ function App() {
           </div>
         </div>
 
-        <div className="p-8">
+        <div className="p-6">
           <div className="mb-6">
             <div className="flex justify-between text-xs font-semibold text-gray-400 mb-2">
               <span>Question {currentQuestion + 1} / {questions.length}</span>
