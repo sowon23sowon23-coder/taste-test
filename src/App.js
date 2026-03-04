@@ -307,7 +307,7 @@ function App() {
     return (
       <div style={{ backgroundColor: YL.bg }} className="min-h-screen flex items-center justify-center p-4">
         <div className="bg-white rounded-3xl shadow-xl text-center max-w-md w-full animate-slideUp overflow-hidden">
-          <div style={{ backgroundColor: YL.primary }} className="px-8 pt-10 pb-8">
+          <div style={{ backgroundColor: YL.greenDark }} className="px-8 pt-10 pb-8">
             <img
               src="/yogurtland-logo.png"
               alt="Yogurtland"
@@ -379,7 +379,7 @@ function App() {
     return (
       <div style={{ backgroundColor: YL.bg }} className="min-h-screen flex items-center justify-center p-4">
         <div className="bg-white rounded-3xl shadow-xl text-center max-w-lg w-full animate-scaleIn overflow-hidden">
-          <div style={{ backgroundColor: YL.primary }} className="px-8 pt-8 pb-6">
+          <div style={{ backgroundColor: YL.greenDark }} className="px-8 pt-8 pb-6">
             <img
               src="/yogurtland-logo.png"
               alt="Yogurtland"
