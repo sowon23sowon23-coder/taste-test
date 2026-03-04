@@ -116,11 +116,12 @@ function App() {
         .filter(f => availableFlavors.includes(f))
         .reduce((a, b) => newScores.flavors[a] > newScores.flavors[b] ? a : b, null);
 
-      const topTopping = Object.keys(newScores.toppings)
+      const topToppings = Object.keys(newScores.toppings)
         .filter(t => availableToppings.includes(t))
-        .reduce((a, b) => newScores.toppings[a] > newScores.toppings[b] ? a : b, null);
+        .sort((a, b) => newScores.toppings[b] - newScores.toppings[a])
+        .slice(0, 2);
 
-      setRecommendation({ flavor: topFlavor, topping: topTopping });
+      setRecommendation({ flavor: topFlavor, toppings: topToppings });
     }
   };
 
@@ -370,7 +371,7 @@ function App() {
   if (recommendation) {
     const flavorData = flavors[recommendation.flavor] || { category: 'classic', description: 'Delicious yogurt flavor' };
     const flavorCategory = flavorCategories[flavorData.category] || flavorCategories.classic;
-    const toppingData = toppings[recommendation.topping] || { category: 'candy', icon: '?' };
+    const recommendedToppings = recommendation.toppings || (recommendation.topping ? [recommendation.topping] : []);
 
     return (
       <div style={{ backgroundColor: YL.bg }} className="min-h-screen flex items-center justify-center p-4">
@@ -398,11 +399,20 @@ function App() {
 
             <div className="rounded-2xl p-5 text-left" style={{ backgroundColor: YL.greenLight }}>
               <div className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: YL.green }}>
-                Recommended Topping
+                Recommended Toppings
               </div>
-              <div className="flex items-center gap-4">
-                <span className="text-5xl">{toppingData.icon}</span>
-                <div className="text-2xl font-extrabold text-gray-800">{recommendation.topping || 'None'}</div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {recommendedToppings.length > 0 ? recommendedToppings.map((topping, index) => {
+                  const toppingData = toppings[topping] || { category: 'candy', icon: '?' };
+                  return (
+                    <div key={`${topping}-${index}`} className="bg-white rounded-xl p-3 flex items-center gap-3">
+                      <span className="text-3xl">{toppingData.icon}</span>
+                      <div className="text-lg font-extrabold text-gray-800">{topping}</div>
+                    </div>
+                  );
+                }) : (
+                  <div className="bg-white rounded-xl p-3 text-lg font-extrabold text-gray-800">None</div>
+                )}
               </div>
             </div>
 
