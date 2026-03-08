@@ -31,13 +31,38 @@ create table if not exists public.coupon_redemptions (
   flavor text not null,
   toppings text[] not null default '{}',
   store_name text not null,
-  created_at timestamptz not null default now()
+  status text not null default 'saved',
+  created_at timestamptz not null default now(),
+  expires_at timestamptz not null default (now() + interval '72 hours'),
+  redeemed_at timestamptz
 );
 
 alter table public.coupon_redemptions enable row level security;
+
+alter table public.coupon_redemptions
+  add column if not exists status text not null default 'saved';
+
+alter table public.coupon_redemptions
+  add column if not exists expires_at timestamptz not null default (now() + interval '72 hours');
+
+alter table public.coupon_redemptions
+  add column if not exists redeemed_at timestamptz;
+
+create policy "Public read coupon redemptions"
+on public.coupon_redemptions
+for select
+to anon, authenticated
+using (true);
 
 create policy "Public insert coupon redemptions"
 on public.coupon_redemptions
 for insert
 to anon, authenticated
+with check (true);
+
+create policy "Public update coupon redemptions"
+on public.coupon_redemptions
+for update
+to anon, authenticated
+using (true)
 with check (true);

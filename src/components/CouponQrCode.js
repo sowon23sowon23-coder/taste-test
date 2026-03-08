@@ -5,6 +5,19 @@ export function CouponQrCode({ value, colors }) {
   const canvasRef = useRef(null);
   const [error, setError] = useState('');
 
+  const handleDownload = () => {
+    if (!canvasRef.current) return;
+    try {
+      const link = document.createElement('a');
+      link.href = canvasRef.current.toDataURL('image/png');
+      link.download = 'yogurtland-coupon-qr.png';
+      link.click();
+    } catch (downloadError) {
+      console.error(downloadError);
+      setError('QR download could not be generated.');
+    }
+  };
+
   useEffect(() => {
     let isMounted = true;
 
@@ -45,9 +58,19 @@ export function CouponQrCode({ value, colors }) {
       {error ? (
         <div className="mt-3 text-sm text-red-600">{error}</div>
       ) : (
-        <div className="mt-3 text-xs leading-5 text-gray-500">
-          Staff can scan or reference this QR with your coupon code.
-        </div>
+        <>
+          <div className="mt-3 text-xs leading-5 text-gray-500">
+            Staff can scan or reference this QR with your coupon code.
+          </div>
+          <button
+            type="button"
+            onClick={handleDownload}
+            className="mt-4 rounded-2xl px-4 py-3 text-sm font-bold"
+            style={{ backgroundColor: colors.primaryLight, color: colors.primary }}
+          >
+            Download QR
+          </button>
+        </>
       )}
     </div>
   );

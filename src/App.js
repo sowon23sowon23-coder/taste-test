@@ -10,7 +10,7 @@ import { starterCommunityCombos } from './data/communityCombos';
 import { stores as initialStores } from './data/stores';
 import { flavors, flavorCategories, toppings } from './data/flavors';
 import { createCommunityCombo, likeCommunityCombo, listCommunityCombos } from './services/communityCombos';
-import { listSavedCoupons, saveCoupon } from './services/coupons';
+import { listSavedCoupons, redeemCoupon, saveCoupon } from './services/coupons';
 import geocodedStores from './data/stores.json';
 
 const YL = {
@@ -67,6 +67,7 @@ function App() {
   const [couponCode, setCouponCode] = useState('');
   const [couponStatus, setCouponStatus] = useState(null);
   const [couponHistory, setCouponHistory] = useState([]);
+  const [selectedHistoryCouponId, setSelectedHistoryCouponId] = useState('');
   const [homeStoreQuery, setHomeStoreQuery] = useState('');
   const [isHomeStoreOpen, setIsHomeStoreOpen] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
@@ -75,6 +76,7 @@ function App() {
   const [combosError, setCombosError] = useState('');
   const [isSubmittingCombo, setIsSubmittingCombo] = useState(false);
   const [isSavingCoupon, setIsSavingCoupon] = useState(false);
+  const [isRedeemingCoupon, setIsRedeemingCoupon] = useState(false);
   const [likingComboId, setLikingComboId] = useState('');
   const [discoverScope, setDiscoverScope] = useState('store');
   const [discoverSort, setDiscoverSort] = useState('popular');
@@ -91,6 +93,7 @@ function App() {
         if (!isMounted) return;
         setCommunityCombos(combos);
         setCouponHistory(coupons);
+        setSelectedHistoryCouponId(coupons[0]?.id || '');
       } catch (error) {
         console.error(error);
         if (isMounted) {
@@ -129,6 +132,14 @@ function App() {
   const popularStoreCombos = useMemo(
     () => [...visibleCombos].sort((a, b) => (b.likes ?? 0) - (a.likes ?? 0)).slice(0, 3),
     [visibleCombos]
+  );
+  const activeCoupon = useMemo(
+    () => couponHistory.find((coupon) => coupon.code === couponCode) || null,
+    [couponCode, couponHistory]
+  );
+  const selectedHistoryCoupon = useMemo(
+    () => couponHistory.find((coupon) => coupon.id === selectedHistoryCouponId) || null,
+    [couponHistory, selectedHistoryCouponId]
   );
   const progress = ((currentQuestion + 1) / questions.length) * 100;
 
@@ -202,6 +213,7 @@ function App() {
     setRecommendation(null);
     setCouponCode('');
     setCouponStatus(null);
+    setSelectedHistoryCouponId('');
     setShareForm({ title: '', flavor: '', toppings: [], description: '' });
   };
 
@@ -335,12 +347,44 @@ function App() {
       });
       const coupons = await listSavedCoupons();
       setCouponHistory(coupons);
-      setCouponStatus({ type: 'success', message: 'Coupon saved. You can now use it as your in-store visit prompt.' });
+      setSelectedHistoryCouponId(coupons[0]?.id || '');
+      setCouponStatus({ type: 'success', message: 'Coupon saved. It is now ready for store use for the next 72 hours.' });
     } catch (error) {
       console.error(error);
       setCouponStatus({ type: 'error', message: 'Coupon could not be saved right now.' });
     } finally {
       setIsSavingCoupon(false);
+    }
+  };
+
+  const handleRedeemCoupon = async () => {
+    if (!activeCoupon?.id) {
+      setCouponStatus({ type: 'error', message: 'Save the coupon before marking it as used.' });
+      return;
+    }
+
+    if (activeCoupon.expiresAt && new Date(activeCoupon.expiresAt).getTime() < Date.now()) {
+      setCouponStatus({ type: 'error', message: 'This coupon has expired. Generate a new one to continue.' });
+      return;
+    }
+
+    if (activeCoupon.status === 'redeemed') {
+      setCouponStatus({ type: 'success', message: 'This coupon is already marked as used.' });
+      return;
+    }
+
+    try {
+      setIsRedeemingCoupon(true);
+      const redeemedCoupon = await redeemCoupon(activeCoupon.id);
+      const coupons = await listSavedCoupons();
+      setCouponHistory(coupons.map((coupon) => (coupon.id === redeemedCoupon?.id ? redeemedCoupon : coupon)));
+      setSelectedHistoryCouponId(redeemedCoupon?.id || selectedHistoryCouponId);
+      setCouponStatus({ type: 'success', message: 'Coupon marked as used. This visit is now recorded as completed.' });
+    } catch (error) {
+      console.error(error);
+      setCouponStatus({ type: 'error', message: 'Coupon could not be updated right now.' });
+    } finally {
+      setIsRedeemingCoupon(false);
     }
   };
 
@@ -597,8 +641,13 @@ function App() {
           storeName={selectedStoreData?.name}
           couponStatus={couponStatus || (isSavingCoupon ? { type: 'success', message: 'Saving coupon...' } : null)}
           couponHistory={couponHistory}
+          activeCoupon={activeCoupon}
+          selectedHistoryCoupon={selectedHistoryCoupon}
+          isRedeemingCoupon={isRedeemingCoupon}
           onRegenerate={() => { setCouponCode(buildCouponCode(recommendation?.flavor || 'combo')); setCouponStatus(null); }}
           onSaveCoupon={handleSaveCoupon}
+          onRedeemCoupon={handleRedeemCoupon}
+          onSelectCoupon={(coupon) => setSelectedHistoryCouponId(coupon.id)}
           onReset={resetFlow}
         />
       </div>
