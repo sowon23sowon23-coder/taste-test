@@ -1,151 +1,171 @@
 export const questions = [
   {
     id: 1,
-    text: 'Choose your yogurt base style',
+    text: 'What kind of base sounds best right now?',
     options: [
       {
-        label: 'Tart 🍋',
-        description: 'Tangy and refreshing',
-        flavors: ['Original Tart', 'Pomegranate Tart'],
+        label: 'Bright and tart',
+        description: 'Refreshing, clean, and a little zingy.',
+        personality: 'Bright Explorer',
+        flavors: ['Original Tart', 'Pomegranate Tart', 'Lemon'],
         toppings: ['Fresh Fruit', 'Jelly', 'Strawberries']
       },
       {
-        label: 'Classic 🍦',
-        description: 'Smooth and creamy',
+        label: 'Smooth and classic',
+        description: 'Comforting, creamy, and easy to love.',
+        personality: 'Classic Comfort',
         flavors: ['Vanilla', 'French Vanilla'],
         toppings: ['Caramel', 'Whipped Cream', 'Cookies']
       },
       {
-        label: 'Chocolate 🍫',
-        description: 'Rich and indulgent',
+        label: 'Chocolate-forward',
+        description: 'Rich, full, and dessert-like.',
+        personality: 'Chocolate Loyalist',
         flavors: ['Chocolate', 'Dutch Chocolate', 'Mint Chocolate Chip'],
         toppings: ['Chocolate Chips', 'Oreo', 'Brownie Bites']
       },
       {
-        label: 'Fruity 🍓',
-        description: 'Sweet and vibrant',
-        flavors: ['Strawberry', 'Mango', 'Peach'],
+        label: 'Fruit-first',
+        description: 'Juicy, colorful, and playful.',
+        personality: 'Fruit Pop',
+        flavors: ['Strawberry', 'Mango', 'Peach', 'Passion Fruit'],
         toppings: ['Fresh Fruit', 'Strawberries', 'Mango']
       }
     ]
   },
   {
     id: 2,
-    text: 'Which fruit flavor do you prefer?',
+    text: 'Pick the flavor family that feels most like you.',
     options: [
       {
-        label: 'Strawberry 🍓',
-        description: 'Classic and sweet',
-        flavors: ['Strawberry'],
+        label: 'Berry lane',
+        description: 'Sweet and familiar with a fresh finish.',
+        personality: 'Berry Glow',
+        flavors: ['Strawberry', 'Pomegranate Tart'],
         toppings: ['Strawberries', 'Fresh Fruit', 'Jelly']
       },
       {
-        label: 'Mango 🥭',
-        description: 'Tropical and juicy',
-        flavors: ['Mango'],
-        toppings: ['Mango', 'Fresh Fruit']
+        label: 'Tropical break',
+        description: 'Sunny and juicy with vacation energy.',
+        personality: 'Tropical Mood',
+        flavors: ['Mango', 'Peach', 'Passion Fruit'],
+        toppings: ['Mango', 'Fresh Fruit', 'Jelly']
       },
       {
-        label: 'Peach / Passion Fruit 🍑',
-        description: 'Exotic tropical blend',
-        flavors: ['Peach', 'Passion Fruit'],
-        toppings: ['Fresh Fruit', 'Jelly']
+        label: 'Mint and cocoa',
+        description: 'Cool, crisp, and bold.',
+        personality: 'Cool Remix',
+        flavors: ['Mint Chocolate Chip', 'Chocolate'],
+        toppings: ['Chocolate Chips', 'Oreo']
       },
       {
-        label: 'Lemon / Tart 🍋',
-        description: 'Bright and citrusy',
-        flavors: ['Lemon', 'Original Tart', 'Pomegranate Tart'],
-        toppings: ['Jelly', 'Fresh Fruit']
+        label: 'Vanilla and cream',
+        description: 'Soft, familiar, and timeless.',
+        personality: 'Soft Signature',
+        flavors: ['Vanilla', 'French Vanilla', 'Cake Batter'],
+        toppings: ['Whipped Cream', 'Cookies', 'Caramel']
       }
     ]
   },
   {
     id: 3,
-    text: 'Pick your chocolate or specialty flavor',
+    text: 'What kind of topping moment do you want?',
     options: [
       {
-        label: 'Dark Chocolate 🍫',
-        description: 'Deep and rich',
-        flavors: ['Chocolate', 'Dutch Chocolate'],
-        toppings: ['Chocolate Chips', 'Brownie Bites', 'Hot Fudge']
-      },
-      {
-        label: 'Mint Chocolate 🌿',
-        description: 'Cool and refreshing',
-        flavors: ['Mint Chocolate Chip'],
-        toppings: ['Chocolate Chips', 'Oreo']
-      },
-      {
-        label: 'Cookies & Cream 🍪',
-        description: 'Crunchy Oreo goodness',
-        flavors: ['Cookies & Cream'],
+        label: 'Crunch',
+        description: 'Cookies, bites, and texture in every spoonful.',
+        personality: 'Crunch Collector',
+        flavors: ['Cookies & Cream', 'Chocolate', 'Cake Batter'],
         toppings: ['Oreo', 'Cookies', 'Brownie Bites']
       },
       {
-        label: 'Specialty Flavor ✨',
-        description: 'Fun and unique',
-        flavors: ['Cake Batter', 'Peanut Butter'],
-        toppings: ['M&Ms', 'Cookies', 'Gummy Bears']
+        label: 'Fresh cut fruit',
+        description: 'Light, bright, and juicy.',
+        personality: 'Fresh Finder',
+        flavors: ['Strawberry', 'Mango', 'Original Tart'],
+        toppings: ['Fresh Fruit', 'Strawberries', 'Mango']
+      },
+      {
+        label: 'Sauce and swirl',
+        description: 'Smooth and sweet with extra depth.',
+        personality: 'Sweet Drizzle',
+        flavors: ['Vanilla', 'French Vanilla', 'Chocolate'],
+        toppings: ['Caramel', 'Hot Fudge', 'Whipped Cream']
+      },
+      {
+        label: 'Candy energy',
+        description: 'Playful, colorful, and shareable.',
+        personality: 'Play Mix',
+        flavors: ['Cake Batter', 'Peanut Butter', 'Cookies & Cream'],
+        toppings: ['M&Ms', 'Gummy Bears', 'Cookies']
       }
     ]
   },
   {
     id: 4,
-    text: 'What is your topping style?',
+    text: 'Which combo would you most likely post?',
     options: [
       {
-        label: 'Chocolate Toppings 🍫',
-        description: 'Chocolate lover',
-        flavors: ['Chocolate', 'Dutch Chocolate', 'Mint Chocolate Chip'],
-        toppings: ['Chocolate Chips', 'Brownie Bites', 'Hot Fudge']
-      },
-      {
-        label: 'Cookies & Candy 🍪',
-        description: 'Crunchy and fun',
-        flavors: ['Cookies & Cream', 'Cake Batter'],
-        toppings: ['Oreo', 'Cookies', 'M&Ms']
-      },
-      {
-        label: 'Fresh Fruit 🍓',
-        description: 'Light and refreshing',
+        label: 'Strawberry + mango + fruit',
+        description: 'Fresh, bright, and camera-ready.',
+        personality: 'Community Favorite',
         flavors: ['Strawberry', 'Mango', 'Peach'],
-        toppings: ['Strawberries', 'Mango', 'Fresh Fruit']
+        toppings: ['Mango', 'Fresh Fruit', 'Strawberries']
       },
       {
-        label: 'Classic Sauces 🍯',
-        description: 'Smooth and sweet',
-        flavors: ['Vanilla', 'French Vanilla'],
-        toppings: ['Caramel', 'Whipped Cream', 'Hot Fudge']
+        label: 'Vanilla + Oreo + whipped cream',
+        description: 'A classic dessert photo.',
+        personality: 'Crowd Pleaser',
+        flavors: ['Vanilla', 'French Vanilla', 'Cookies & Cream'],
+        toppings: ['Oreo', 'Whipped Cream', 'Cookies']
+      },
+      {
+        label: 'Chocolate + brownie bites + fudge',
+        description: 'Bold, rich, and indulgent.',
+        personality: 'Decadent Builder',
+        flavors: ['Chocolate', 'Dutch Chocolate'],
+        toppings: ['Brownie Bites', 'Hot Fudge', 'Chocolate Chips']
+      },
+      {
+        label: 'Original tart + jelly + fruit',
+        description: 'Clean, tangy, and a little unexpected.',
+        personality: 'Curious Taster',
+        flavors: ['Original Tart', 'Pomegranate Tart', 'Lemon'],
+        toppings: ['Jelly', 'Fresh Fruit', 'Strawberries']
       }
     ]
   },
   {
     id: 5,
-    text: 'What vibe are you feeling?',
+    text: 'What should your Yogurtland stop feel like?',
     options: [
       {
-        label: 'Sweet Dessert 🍰',
-        description: 'Rich and indulgent',
+        label: 'Quick refreshing reset',
+        description: 'Something you can come back for often.',
+        personality: 'Everyday Refresh',
+        flavors: ['Original Tart', 'Strawberry', 'Mango'],
+        toppings: ['Fresh Fruit', 'Jelly', 'Mango']
+      },
+      {
+        label: 'Dessert reward',
+        description: 'A richer treat after a long day.',
+        personality: 'Dessert Mode',
         flavors: ['Chocolate', 'Cookies & Cream', 'Cake Batter'],
-        toppings: ['Chocolate Chips', 'Oreo', 'Caramel', 'Brownie Bites']
+        toppings: ['Oreo', 'Brownie Bites', 'Hot Fudge']
       },
       {
-        label: 'Bright & Refreshing 🌸',
-        description: 'Light and fruity',
-        flavors: ['Strawberry', 'Mango', 'Original Tart', 'Passion Fruit'],
-        toppings: ['Fresh Fruit', 'Strawberries', 'Jelly']
-      },
-      {
-        label: 'Cool & Crisp ❄️',
-        description: 'Chilly and invigorating',
-        flavors: ['Mint Chocolate Chip', 'Lemon', 'Pomegranate Tart'],
-        toppings: ['Chocolate Chips', 'Jelly']
-      },
-      {
-        label: 'Classic & Elegant ✨',
-        description: 'Simple and timeless',
+        label: 'Safe favorite',
+        description: 'Reliable, soft, and easy for everyone.',
+        personality: 'Signature Classic',
         flavors: ['Vanilla', 'French Vanilla'],
-        toppings: ['Whipped Cream', 'Cookies', 'Caramel']
+        toppings: ['Caramel', 'Whipped Cream', 'Cookies']
+      },
+      {
+        label: 'Something a little different',
+        description: 'A mix you would tell a friend to try.',
+        personality: 'Flavor Scout',
+        flavors: ['Peanut Butter', 'Passion Fruit', 'Mint Chocolate Chip'],
+        toppings: ['M&Ms', 'Chocolate Chips', 'Jelly']
       }
     ]
   }

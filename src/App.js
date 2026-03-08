@@ -1,661 +1,611 @@
-import React, { useState, useEffect } from 'react';
-import { IceCream, MapPin, Sparkles, Store, ChevronRight, RefreshCw, ChevronLeft, RotateCcw, Home } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { ChevronLeft, RotateCcw, SlidersHorizontal, Sparkles, Users } from 'lucide-react';
+import { FlowOverview } from './components/FlowOverview';
+import { StorePickerPanel } from './components/StorePickerPanel';
+import { ComboCard } from './components/ComboCard';
+import { ShareComboForm } from './components/ShareComboForm';
+import { VisitSummary } from './components/VisitSummary';
 import { questions } from './data/questions';
+import { starterCommunityCombos } from './data/communityCombos';
 import { stores as initialStores } from './data/stores';
 import { flavors, flavorCategories, toppings } from './data/flavors';
+import { createCommunityCombo, likeCommunityCombo, listCommunityCombos } from './services/communityCombos';
+import { listSavedCoupons, saveCoupon } from './services/coupons';
 import geocodedStores from './data/stores.json';
 
 const YL = {
   primary: '#960853',
   primaryDark: '#7a0643',
-  primaryLight: '#FFF0F5',
-  green: '#8DC63F',
+  primaryLight: '#fff0f5',
+  green: '#8dc63f',
   greenDark: '#72a234',
-  greenLight: '#F2F9E8',
-  bg: '#FFF5F8',
+  greenLight: '#f2f9e8',
+  bg: '#fff5f8',
+  paper: '#fffdf8',
+  ink: '#2f2330'
+};
+
+const FLOW_STEPS = [
+  { id: 'play', title: 'Play', description: 'Take a Flavor Test.' },
+  { id: 'discover', title: 'Discover', description: 'Browse combo ideas.' },
+  { id: 'share', title: 'Share', description: 'Create your own combo.' },
+  { id: 'visit', title: 'Visit', description: 'Generate a try-it code.' }
+];
+
+const DISCOVER_SORTS = {
+  popular: 'Popular',
+  latest: 'Latest'
 };
 
 const CITY_ALIAS_MAP = {
   'los angeles': ['USC GATEWAY', 'MIRACLE MILE', 'CULVER CITY'],
   'rancho cucamonga': ['RIO RANCHO', 'RANCHO MISSION VIEJO'],
-  'redlands': ['RIVERSIDE', 'CHINO HILLS'],
+  redlands: ['RIVERSIDE', 'CHINO HILLS'],
   'redondo beach': ['MANHATTAN BEACH'],
   'san diego': ['SDSU', 'MIRA MESA'],
   'seal beach': ['CERRITOS'],
-  'stockton': ['PLEASANT HILL'],
-  'torrance': ['MANHATTAN BEACH'],
-  'arvada': ['CO104', 'CO103', 'CO102', 'CO101'],
-  'denver': ['CO104', 'CO103', 'CO102', 'CO101'],
-  'littleton': ['CO104', 'CO103', 'CO102', 'CO101'],
-  'cypress': ['WESTCHASE', 'MEMORIAL CITY'],
+  stockton: ['PLEASANT HILL'],
+  torrance: ['MANHATTAN BEACH'],
+  arvada: ['CO104', 'CO103', 'CO102', 'CO101'],
+  denver: ['CO104', 'CO103', 'CO102', 'CO101'],
+  littleton: ['CO104', 'CO103', 'CO102', 'CO101'],
+  cypress: ['WESTCHASE', 'MEMORIAL CITY'],
   'fort worth': ['FT. WORTH'],
-  'houston': ['WESTCHASE', 'MEMORIAL CITY'],
+  houston: ['WESTCHASE', 'MEMORIAL CITY'],
   'st. george': ['RED ROCK COMMONS', 'OREM'],
   'west jordan': ['JORDAN LANDING']
 };
 
+const stores = initialStores;
+
 function App() {
+  const [stage, setStage] = useState('home');
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedStore, setSelectedStore] = useState(null);
-  const [scores, setScores] = useState({ flavors: {}, toppings: {} });
+  const [answerHistory, setAnswerHistory] = useState([]);
   const [recommendation, setRecommendation] = useState(null);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [adminPassword, setAdminPassword] = useState('');
-  const [stores, setStores] = useState(initialStores);
-  const [editingStore, setEditingStore] = useState(null);
+  const [couponCode, setCouponCode] = useState('');
+  const [couponStatus, setCouponStatus] = useState(null);
+  const [couponHistory, setCouponHistory] = useState([]);
   const [homeStoreQuery, setHomeStoreQuery] = useState('');
   const [isHomeStoreOpen, setIsHomeStoreOpen] = useState(false);
-  const [adminStoreSearch, setAdminStoreSearch] = useState('');
-  const [adminError, setAdminError] = useState(false);
-  const [answerHistory, setAnswerHistory] = useState([]);
   const [isLocating, setIsLocating] = useState(false);
-  // eslint-disable-next-line no-unused-vars
-  const [userLocation, setUserLocation] = useState(null);
+  const [communityCombos, setCommunityCombos] = useState(starterCommunityCombos);
+  const [isLoadingCombos, setIsLoadingCombos] = useState(true);
+  const [combosError, setCombosError] = useState('');
+  const [isSubmittingCombo, setIsSubmittingCombo] = useState(false);
+  const [isSavingCoupon, setIsSavingCoupon] = useState(false);
+  const [likingComboId, setLikingComboId] = useState('');
+  const [discoverScope, setDiscoverScope] = useState('store');
+  const [discoverSort, setDiscoverSort] = useState('popular');
+  const [shareForm, setShareForm] = useState({ title: '', flavor: '', toppings: [], description: '' });
 
   useEffect(() => {
-    const savedStores = localStorage.getItem('stores');
-    if (savedStores) {
-      setStores(JSON.parse(savedStores));
-    }
+    let isMounted = true;
+    const load = async () => {
+      try {
+        const [combos, coupons] = await Promise.all([
+          listCommunityCombos(),
+          listSavedCoupons()
+        ]);
+        if (!isMounted) return;
+        setCommunityCombos(combos);
+        setCouponHistory(coupons);
+      } catch (error) {
+        console.error(error);
+        if (isMounted) {
+          setCombosError('Community data could not be fully loaded.');
+        }
+      } finally {
+        if (isMounted) setIsLoadingCombos(false);
+      }
+    };
+    load();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem('stores', JSON.stringify(stores));
-  }, [stores]);
-
   const getStoreKey = (store) => store.id ?? store.name;
-  const getStoreLon = (store) => (store.lon ?? store.lng);
-  const findStoreByKey = (key) => stores.find((store) => getStoreKey(store) === key);
-  const getCityFromName = (name = '') => name.split(',')[0].trim().toLowerCase();
-  const normalizedHomeStoreQuery = homeStoreQuery.trim().toLowerCase();
-  const filteredHomeStores = stores.filter((store) =>
-    (store.name || '').toLowerCase().includes(normalizedHomeStoreQuery)
-  ).slice(0, 8);
+  const selectedStoreData = selectedStore ? stores.find((store) => getStoreKey(store) === selectedStore) : null;
+  const filteredHomeStores = useMemo(
+    () => stores.filter((store) => (store.name || '').toLowerCase().includes(homeStoreQuery.trim().toLowerCase())).slice(0, 8),
+    [homeStoreQuery]
+  );
+  const availableFlavors = selectedStoreData?.flavors || [];
+  const availableToppings = selectedStoreData?.toppings || [];
+  const visibleCombos = selectedStoreData ? communityCombos.filter((combo) => availableFlavors.includes(combo.flavor)) : communityCombos;
+  const discoverCombos = useMemo(() => {
+    const scopedCombos = discoverScope === 'all' || !selectedStoreData ? communityCombos : visibleCombos;
+    return [...scopedCombos].sort((left, right) => {
+      if (discoverSort === 'latest') {
+        return new Date(right.createdAt || 0).getTime() - new Date(left.createdAt || 0).getTime();
+      }
+      const likeGap = (right.likes ?? 0) - (left.likes ?? 0);
+      if (likeGap !== 0) return likeGap;
+      return new Date(right.createdAt || 0).getTime() - new Date(left.createdAt || 0).getTime();
+    });
+  }, [communityCombos, discoverScope, discoverSort, selectedStoreData, visibleCombos]);
+  const popularStoreCombos = useMemo(
+    () => [...visibleCombos].sort((a, b) => (b.likes ?? 0) - (a.likes ?? 0)).slice(0, 3),
+    [visibleCombos]
+  );
+  const progress = ((currentQuestion + 1) / questions.length) * 100;
+
+  const buildCouponCode = (seed = 'combo') => {
+    const slug = seed.replace(/[^a-z0-9]/gi, '').toUpperCase().slice(0, 6) || 'COMBO';
+    const random = Math.random().toString(36).slice(2, 6).toUpperCase();
+    return `YL-${slug}-${random}`;
+  };
+
+  const recomputeScores = (history) => {
+    const nextScores = { flavors: {}, toppings: {}, personalities: {} };
+    history.forEach((optionIndex, questionIndex) => {
+      const option = questions[questionIndex].options[optionIndex];
+      option.flavors.forEach((flavor) => { nextScores.flavors[flavor] = (nextScores.flavors[flavor] || 0) + 1; });
+      option.toppings.forEach((topping) => { nextScores.toppings[topping] = (nextScores.toppings[topping] || 0) + 1; });
+      nextScores.personalities[option.personality] = (nextScores.personalities[option.personality] || 0) + 1;
+    });
+    return nextScores;
+  };
 
   const getDistance = (lat1, lon1, lat2, lon2) => {
-    const R = 6371;
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = Math.sin(dLat / 2) ** 2 +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-      Math.sin(dLon / 2) ** 2;
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
+    return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   };
 
-  const findNearestStore = (userLat, userLon) => {
-    const storesWithCoords = geocodedStores.filter((store) =>
-      Number.isFinite(store.lat) && Number.isFinite(store.lon)
-    );
-
-    const fallbackStores = stores.filter((store) =>
-      Number.isFinite(store.lat) && Number.isFinite(getStoreLon(store))
-    ).map((store) => ({ name: store.name, lat: store.lat, lon: getStoreLon(store) }));
-
-    const candidates = storesWithCoords.length > 0 ? storesWithCoords : fallbackStores;
-    if (candidates.length === 0) return null;
-
-    let nearest = null;
-    let minDistance = Infinity;
-    candidates.forEach((store) => {
-      const distance = getDistance(userLat, userLon, store.lat, store.lon);
-      if (distance < minDistance) {
-        minDistance = distance;
-        nearest = store;
-      }
-    });
-    return nearest;
-  };
-
-  const findAppStoreFromGeoStore = (geoStore) => {
+  const mapGeoStoreToAppStore = (geoStore) => {
     if (!geoStore?.name) return null;
-    const geoCity = getCityFromName(geoStore.name);
-    const directMatch = stores.find((store) =>
-      (store.name || '').toLowerCase().includes(geoCity)
-    );
+    const geoCity = geoStore.name.split(',')[0].trim().toLowerCase();
+    const directMatch = stores.find((store) => (store.name || '').toLowerCase().includes(geoCity));
     if (directMatch) return directMatch;
-
     const aliases = CITY_ALIAS_MAP[geoCity] || [];
-    for (const alias of aliases) {
-      const aliasUpper = alias.toUpperCase();
-      const aliasMatch = stores.find((store) =>
-        (store.id || '').toUpperCase() === aliasUpper ||
-        (store.name || '').toUpperCase().includes(aliasUpper)
-      );
-      if (aliasMatch) return aliasMatch;
-    }
-
-    return null;
+    return stores.find((store) => aliases.some((alias) => (store.id || '').toUpperCase() === alias || (store.name || '').toUpperCase().includes(alias))) || null;
   };
 
   const handleFindNearest = () => {
     if (isLocating) return;
-    if (!navigator.geolocation) {
-      alert('Geolocation is not supported in this browser.');
-      return;
-    }
-
+    if (!navigator.geolocation) return alert('Geolocation is not supported in this browser.');
     setIsLocating(true);
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        setUserLocation({ lat: latitude, lon: longitude });
-        const nearestGeoStore = findNearestStore(latitude, longitude);
-        if (!nearestGeoStore) {
-          alert('No nearby stores found.');
-          setIsLocating(false);
-          return;
-        }
-
-        const nearestAppStore = findAppStoreFromGeoStore(nearestGeoStore);
-        if (!nearestAppStore) {
-          alert('No nearby stores found.');
-          setIsLocating(false);
-          return;
-        }
-
-        setSelectedStore(getStoreKey(nearestAppStore));
-        setHomeStoreQuery(nearestAppStore.name || '');
+      ({ coords }) => {
+        const candidates = geocodedStores.filter((store) => Number.isFinite(store.lat) && Number.isFinite(store.lon));
+        let nearest = null;
+        let minDistance = Infinity;
+        candidates.forEach((store) => {
+          const distance = getDistance(coords.latitude, coords.longitude, store.lat, store.lon);
+          if (distance < minDistance) {
+            minDistance = distance;
+            nearest = store;
+          }
+        });
+        const appStore = mapGeoStoreToAppStore(nearest);
+        setIsLocating(false);
+        if (!appStore) return alert('No nearby stores found.');
+        setSelectedStore(getStoreKey(appStore));
+        setHomeStoreQuery(appStore.name || '');
         setIsHomeStoreOpen(false);
-        setIsLocating(false);
       },
-      (error) => {
-        if (error.code === error.PERMISSION_DENIED) {
-          alert('Please allow location access');
-        } else {
-          alert('Unable to retrieve your location.');
-        }
+      () => {
         setIsLocating(false);
+        alert('Unable to retrieve your location.');
       }
     );
   };
 
-  const updateStore = (storeId, updatedStore) => {
-    setStores(stores.map(s => s.id === storeId ? updatedStore : s));
+  const resetFlow = () => {
+    setStage('home');
+    setCurrentQuestion(0);
+    setAnswerHistory([]);
+    setRecommendation(null);
+    setCouponCode('');
+    setCouponStatus(null);
+    setShareForm({ title: '', flavor: '', toppings: [], description: '' });
+  };
+
+  const resetTest = () => {
+    setStage('play');
+    setCurrentQuestion(0);
+    setAnswerHistory([]);
+    setRecommendation(null);
+    setCouponCode('');
+    setCouponStatus(null);
   };
 
   const handleAnswer = (optionIndex) => {
-    const question = questions[currentQuestion];
-    const option = question.options[optionIndex];
-
+    const option = questions[currentQuestion].options[optionIndex];
     const newHistory = [...answerHistory, optionIndex];
+    const nextScores = recomputeScores(newHistory);
     setAnswerHistory(newHistory);
-
-    const newScores = { ...scores };
-    option.flavors.forEach(flavor => {
-      newScores.flavors[flavor] = (newScores.flavors[flavor] || 0) + 1;
-    });
-    option.toppings.forEach(topping => {
-      newScores.toppings[topping] = (newScores.toppings[topping] || 0) + 1;
-    });
-    setScores(newScores);
 
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
-    } else {
-      const selectedStoreData = selectedStore ? findStoreByKey(selectedStore) : null;
-      const availableFlavors = selectedStoreData ? selectedStoreData.flavors : [];
-      const availableToppings = selectedStoreData ? selectedStoreData.toppings : [];
-
-      const topFlavor = Object.keys(newScores.flavors)
-        .filter(f => availableFlavors.includes(f))
-        .reduce((a, b) => newScores.flavors[a] > newScores.flavors[b] ? a : b, null);
-
-      const topToppings = Object.keys(newScores.toppings)
-        .filter(t => availableToppings.includes(t))
-        .sort((a, b) => newScores.toppings[b] - newScores.toppings[a])
-        .slice(0, 2);
-
-      setRecommendation({ flavor: topFlavor, toppings: topToppings });
+      return;
     }
-  };
 
-  const resetGame = () => {
-    setCurrentQuestion(0);
-    setScores({ flavors: {}, toppings: {} });
-    setRecommendation(null);
-    setAnswerHistory([]);
+    const flavor = Object.keys(nextScores.flavors)
+      .filter((item) => availableFlavors.includes(item))
+      .sort((a, b) => nextScores.flavors[b] - nextScores.flavors[a])[0] || availableFlavors[0] || null;
+    const pickedToppings = Object.keys(nextScores.toppings)
+      .filter((item) => availableToppings.includes(item))
+      .sort((a, b) => nextScores.toppings[b] - nextScores.toppings[a])
+      .slice(0, 2);
+    const personality = Object.keys(nextScores.personalities)
+      .sort((a, b) => nextScores.personalities[b] - nextScores.personalities[a])[0] || option.personality;
+
+    setRecommendation({
+      flavor,
+      toppings: pickedToppings,
+      personality,
+      description: flavor ? flavors[flavor]?.description : 'A Yogurtland combo shaped by your answers.'
+    });
+    setCouponCode(buildCouponCode(flavor || personality));
+    setCouponStatus(null);
+    setStage('result');
   };
 
   const handlePrevious = () => {
     if (currentQuestion === 0) return;
-    const newHistory = answerHistory.slice(0, -1);
-    setAnswerHistory(newHistory);
-    const newScores = { flavors: {}, toppings: {} };
-    newHistory.forEach((optionIndex, qIndex) => {
-      const option = questions[qIndex].options[optionIndex];
-      option.flavors.forEach(flavor => {
-        newScores.flavors[flavor] = (newScores.flavors[flavor] || 0) + 1;
-      });
-      option.toppings.forEach(topping => {
-        newScores.toppings[topping] = (newScores.toppings[topping] || 0) + 1;
-      });
-    });
-    setScores(newScores);
-    setCurrentQuestion(currentQuestion - 1);
+    setAnswerHistory((current) => current.slice(0, -1));
+    setCurrentQuestion((current) => current - 1);
   };
 
-  const handleAdminLogin = () => {
-    if (adminPassword === 'admin1234') {
-      setIsAdmin(true);
-      setAdminError(false);
-    } else {
-      setAdminError(true);
+  const handleLikeCombo = async (combo) => {
+    try {
+      setLikingComboId(combo.id);
+      const updated = await likeCommunityCombo(combo.id);
+      setCommunityCombos((current) => current.map((item) => (item.id === combo.id ? updated : item)));
+    } catch (error) {
+      console.error(error);
+      alert(error.message === 'ALREADY_LIKED' ? 'You already liked this combo on this device.' : 'Could not register the like right now.');
+    } finally {
+      setLikingComboId('');
     }
   };
 
-  if (isAdmin) {
+  const handleStartShare = () => {
+    setShareForm({
+      title: '',
+      flavor: recommendation?.flavor || '',
+      toppings: recommendation?.toppings || [],
+      description: ''
+    });
+    setStage('share');
+  };
+
+  const handleTryCombo = (combo) => {
+    setRecommendation({
+      flavor: combo.flavor,
+      toppings: combo.toppings,
+      personality: combo.vibe,
+      description: combo.description
+    });
+    setCouponCode(buildCouponCode(combo.title));
+    setCouponStatus(null);
+    setStage('visit');
+  };
+
+  const submitCombo = async () => {
+    if (!shareForm.title || !shareForm.flavor || shareForm.toppings.length === 0) {
+      alert('Add a title, flavor, and at least one topping.');
+      return;
+    }
+
+    try {
+      setIsSubmittingCombo(true);
+      const nextCombo = await createCommunityCombo({
+        title: shareForm.title,
+        author: 'You',
+        flavor: shareForm.flavor,
+        toppings: shareForm.toppings,
+        vibe: recommendation?.personality || 'Custom',
+        description: shareForm.description || 'A custom combo from the flavor test.',
+        likes: 1,
+        featured: false
+      });
+      setCommunityCombos((current) => [nextCombo, ...current.filter((item) => item.id !== nextCombo.id)]);
+      setRecommendation({
+        flavor: shareForm.flavor,
+        toppings: shareForm.toppings,
+        personality: recommendation?.personality || 'Custom Combo',
+        description: shareForm.description || 'A custom combo from the flavor test.'
+      });
+      setCouponCode(buildCouponCode(shareForm.title));
+      setCouponStatus(null);
+      setStage('visit');
+    } catch (error) {
+      console.error(error);
+      alert('Could not share the combo right now.');
+    } finally {
+      setIsSubmittingCombo(false);
+    }
+  };
+
+  const handleSaveCoupon = async () => {
+    if (!recommendation || !couponCode || !selectedStoreData?.name) return;
+    try {
+      setIsSavingCoupon(true);
+      await saveCoupon({
+        code: couponCode,
+        flavor: recommendation.flavor,
+        toppings: recommendation.toppings,
+        storeName: selectedStoreData.name
+      });
+      const coupons = await listSavedCoupons();
+      setCouponHistory(coupons);
+      setCouponStatus({ type: 'success', message: 'Coupon saved. You can now use it as your in-store visit prompt.' });
+    } catch (error) {
+      console.error(error);
+      setCouponStatus({ type: 'error', message: 'Coupon could not be saved right now.' });
+    } finally {
+      setIsSavingCoupon(false);
+    }
+  };
+
+  if (stage === 'home') {
     return (
-      <div style={{ backgroundColor: YL.bg }} className="min-h-screen p-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-2xl shadow-md p-5 mb-5 flex items-center gap-4">
-            <div style={{ backgroundColor: YL.primary }} className="p-3 rounded-xl">
-              <Store className="w-6 h-6 text-white" />
-            </div>
-            <div className="flex-1">
-              <div className="text-xs font-bold uppercase tracking-widest" style={{ color: YL.primary }}>Yogurtland</div>
-              <h1 className="text-2xl font-extrabold text-gray-800">Admin Mode</h1>
-            </div>
-            <button
-              onClick={() => { setIsAdmin(false); setSelectedStore(null); resetGame(); }}
-              className="flex items-center gap-2 bg-gray-100 text-gray-600 px-4 py-2.5 rounded-xl font-semibold hover:bg-gray-200 transition-colors text-sm"
-            >
-              <Home className="w-4 h-4" />
-              Home
-            </button>
-          </div>
-
-          {editingStore ? (
-            <div className="bg-white rounded-2xl shadow-md p-8 animate-fadeIn">
-              <h2 className="text-2xl font-bold mb-1 text-gray-800">{editingStore.name}</h2>
-              <p className="text-sm text-gray-400 mb-6">Select flavors and toppings sold at this store.</p>
-
-              <div className="mb-6">
-                <h3 className="text-base font-bold mb-3 flex items-center gap-2" style={{ color: YL.primary }}>
-                  <IceCream className="w-4 h-4" /> Flavors
-                </h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-80 overflow-y-auto pr-1">
-                  {Object.keys(flavors).map(flavor => (
-                    <label
-                      key={flavor}
-                      className="flex items-center gap-2 p-3 rounded-xl cursor-pointer transition-colors duration-150 select-none"
-                      style={{ backgroundColor: editingStore.flavors.includes(flavor) ? YL.primaryLight : '#F9FAFB' }}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={editingStore.flavors.includes(flavor)}
-                        onChange={(e) => {
-                          const newFlavors = e.target.checked
-                            ? [...editingStore.flavors, flavor]
-                            : editingStore.flavors.filter(f => f !== flavor);
-                          setEditingStore({ ...editingStore, flavors: newFlavors });
-                        }}
-                        className="w-4 h-4 rounded"
-                        style={{ accentColor: YL.primary }}
-                      />
-                      <span className="text-sm font-medium text-gray-700">{flavor}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              <div className="mb-8">
-                <h3 className="text-base font-bold mb-3 flex items-center gap-2" style={{ color: YL.green }}>
-                  <Sparkles className="w-4 h-4" /> Toppings
-                </h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-80 overflow-y-auto pr-1">
-                  {Object.keys(toppings).map(topping => (
-                    <label
-                      key={topping}
-                      className="flex items-center gap-2 p-3 rounded-xl cursor-pointer transition-colors duration-150 select-none"
-                      style={{ backgroundColor: editingStore.toppings.includes(topping) ? YL.greenLight : '#F9FAFB' }}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={editingStore.toppings.includes(topping)}
-                        onChange={(e) => {
-                          const newToppings = e.target.checked
-                            ? [...editingStore.toppings, topping]
-                            : editingStore.toppings.filter(t => t !== topping);
-                          setEditingStore({ ...editingStore, toppings: newToppings });
-                        }}
-                        className="w-4 h-4 rounded"
-                        style={{ accentColor: YL.green }}
-                      />
-                      <span className="text-sm font-medium text-gray-700">{topping}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <button
-                  onClick={() => { updateStore(editingStore.id, editingStore); setEditingStore(null); }}
-                  style={{ backgroundColor: YL.primary }}
-                  className="flex-1 text-white px-6 py-3 rounded-xl font-bold hover:opacity-90 transition-opacity"
-                >
-                  Save
-                </button>
-                <button
-                  onClick={() => setEditingStore(null)}
-                  className="flex-1 bg-gray-100 text-gray-600 px-6 py-3 rounded-xl font-bold hover:bg-gray-200 transition-colors"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-3 animate-fadeIn">
-              <h2 className="text-xl font-bold text-gray-800">Select Store</h2>
-              <input
-                type="text"
-                placeholder="Search stores..."
-                value={adminStoreSearch}
-                onChange={(e) => setAdminStoreSearch(e.target.value)}
-                className="w-full p-3 border-2 border-gray-200 rounded-xl transition-all duration-200 font-medium text-gray-700 bg-white outline-none focus:border-pink-300"
-              />
-              <div className="grid gap-2 max-h-[500px] overflow-y-auto pr-1">
-                {stores
-                  .filter(store => store.name.toLowerCase().includes(adminStoreSearch.toLowerCase()))
-                  .map(store => (
-                    <button
-                      key={store.id}
-                      onClick={() => setEditingStore(store)}
-                      className="bg-white text-left px-5 py-4 rounded-xl font-medium text-gray-800 transition-all duration-150 shadow-sm hover:shadow-md flex items-center justify-between group"
-                      style={{}}
-                      onMouseEnter={e => { e.currentTarget.style.backgroundColor = YL.primary; e.currentTarget.style.color = 'white'; }}
-                      onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'white'; e.currentTarget.style.color = ''; }}
-                    >
-                      <span>{store.name}</span>
-                      <ChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </button>
-                  ))}
-              </div>
-              <button
-                onClick={() => setIsAdmin(false)}
-                className="w-full mt-2 bg-gray-100 text-gray-500 px-6 py-3 rounded-xl font-semibold hover:bg-gray-200 transition-colors"
-              >
-                Log out
-              </button>
-            </div>
-          )}
+      <div className="min-h-screen px-4 py-8 md:px-6" style={{ background: `radial-gradient(circle at top left, ${YL.primaryLight} 0%, ${YL.bg} 45%, ${YL.paper} 100%)` }}>
+        <div className="max-w-6xl mx-auto grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+          <FlowOverview colors={YL} steps={FLOW_STEPS} combos={starterCommunityCombos} />
+          <StorePickerPanel
+            colors={YL}
+            homeStoreQuery={homeStoreQuery}
+            isHomeStoreOpen={isHomeStoreOpen}
+            filteredHomeStores={filteredHomeStores}
+            isLocating={isLocating}
+            onStoreQueryChange={(event) => { setHomeStoreQuery(event.target.value); setIsHomeStoreOpen(true); setSelectedStore(null); }}
+            onStoreQueryFocus={() => setIsHomeStoreOpen(true)}
+            onStoreQueryBlur={() => setTimeout(() => setIsHomeStoreOpen(false), 120)}
+            onStoreSelect={(store) => { setSelectedStore(getStoreKey(store)); setHomeStoreQuery(store.name || ''); setIsHomeStoreOpen(false); }}
+            onStoreEnter={(event) => {
+              if (event.key === 'Enter' && filteredHomeStores.length > 0) {
+                const first = filteredHomeStores[0];
+                setSelectedStore(getStoreKey(first));
+                setHomeStoreQuery(first.name || '');
+                setIsHomeStoreOpen(false);
+              }
+            }}
+            onFindNearest={handleFindNearest}
+            onStart={() => {
+              if (!selectedStore) return alert('Choose a store first.');
+              setStage('play');
+            }}
+          />
         </div>
       </div>
     );
   }
 
-  if (!selectedStore) {
+  if (stage === 'play') {
     return (
-      <div style={{ backgroundColor: YL.bg }} className="min-h-screen flex items-center justify-center p-4">
-        <div className="bg-white rounded-3xl shadow-xl text-center max-w-md w-full animate-slideUp overflow-hidden">
-          <div style={{ backgroundColor: YL.primary }} className="px-8 pt-10 pb-8">
-            <img
-              src="/yogurtland-logo.png"
-              alt="Yogurtland"
-              className="h-6 mx-auto mb-2 object-contain"
-              style={{ filter: 'brightness(0) invert(1)', opacity: 0.9 }}
-            />
-            <h1 className="text-3xl font-extrabold leading-tight text-white">
-              Find Your Perfect<br />Yogurt Flavor
-            </h1>
-            <p className="mt-2 text-sm text-white/80">We will match you with your best combo.</p>
-          </div>
-
-          <div className="p-8">
-            <div className="mb-4">
-              <label className="block text-left text-sm font-semibold text-gray-500 mb-2 flex items-center gap-1.5">
-                <Store className="w-4 h-4" /> Select Store
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Choose a store"
-                  value={homeStoreQuery}
-                  onFocus={() => setIsHomeStoreOpen(true)}
-                  onBlur={() => setTimeout(() => setIsHomeStoreOpen(false), 120)}
-                  onChange={(e) => {
-                    setHomeStoreQuery(e.target.value);
-                    setIsHomeStoreOpen(true);
-                    setSelectedStore(null);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && filteredHomeStores.length > 0) {
-                      const first = filteredHomeStores[0];
-                      setSelectedStore(getStoreKey(first));
-                      setHomeStoreQuery(first.name || '');
-                      setIsHomeStoreOpen(false);
-                    }
-                  }}
-                  className="w-full p-4 border-2 border-gray-200 rounded-xl font-medium text-gray-700 bg-gray-50 outline-none transition-all duration-200 focus:border-pink-300"
-                />
-                {isHomeStoreOpen && (
-                  <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg">
-                    {filteredHomeStores.length > 0 ? (
-                      filteredHomeStores.map((store) => (
-                        <button
-                          key={getStoreKey(store)}
-                          type="button"
-                          onClick={() => {
-                            setSelectedStore(getStoreKey(store));
-                            setHomeStoreQuery(store.name || '');
-                            setIsHomeStoreOpen(false);
-                          }}
-                          className="w-full px-4 py-2.5 text-left text-gray-700 hover:bg-gray-100 transition-colors"
-                        >
-                          {store.name}
-                        </button>
-                      ))
-                    ) : (
-                      <div className="px-4 py-3 text-sm text-gray-500">No stores match your search.</div>
-                    )}
+      <div style={{ backgroundColor: YL.bg }} className="min-h-screen px-4 py-8">
+        <div className="max-w-5xl mx-auto grid gap-6 lg:grid-cols-[0.75fr_1.25fr]">
+          <aside className="bg-white rounded-[32px] shadow-xl overflow-hidden">
+            <div className="px-7 py-7" style={{ backgroundColor: YL.primary }}>
+              <div className="text-white/60 text-xs font-bold uppercase tracking-widest">Yogurtland</div>
+              <div className="mt-2 text-white font-extrabold text-3xl leading-tight">Play the Flavor Test</div>
+            </div>
+            <div className="p-7 space-y-5">
+              <div className="rounded-2xl p-4" style={{ backgroundColor: YL.primaryLight }}>
+                <div className="text-xs font-black uppercase tracking-[0.24em]" style={{ color: YL.primary }}>Current Store</div>
+                <div className="mt-2 text-lg font-extrabold text-gray-800">{selectedStoreData?.name}</div>
+              </div>
+              <div className="space-y-3">
+                {FLOW_STEPS.map((step, index) => (
+                  <div key={step.id} className="flex gap-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-black text-white" style={{ backgroundColor: step.id === 'play' ? YL.primary : '#d1d5db' }}>{index + 1}</div>
+                    <div><div className="text-sm font-bold text-gray-800">{step.title}</div><div className="text-sm leading-6 text-gray-500">{step.description}</div></div>
                   </div>
-                )}
+                ))}
               </div>
             </div>
-
-            <button
-              onClick={handleFindNearest}
-              disabled={isLocating}
-              style={{ backgroundColor: YL.green }}
-              className="w-full text-white px-6 py-3.5 rounded-xl font-bold hover:opacity-90 transition-opacity mb-6 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
-            >
-              {isLocating ? <RefreshCw className="w-4 h-4 animate-spin" /> : <MapPin className="w-4 h-4" />}
-              {isLocating ? 'Finding nearest store...' : 'Find Nearest Store'}
-            </button>
-
-            <div className="border-t border-gray-100 pt-5">
-              <div className="flex gap-2">
-                <input
-                  type="password"
-                  placeholder="Admin password"
-                  value={adminPassword}
-                  onChange={(e) => { setAdminPassword(e.target.value); setAdminError(false); }}
-                  onKeyDown={(e) => e.key === 'Enter' && handleAdminLogin()}
-                  className={`flex-1 p-3 border-2 rounded-xl text-sm outline-none transition-all duration-200 ${adminError ? 'border-red-400' : 'border-gray-200 focus:border-gray-400'}`}
-                />
-                <button
-                  onClick={handleAdminLogin}
-                  className="bg-gray-700 text-white px-5 py-3 rounded-xl text-sm font-bold hover:bg-gray-800 transition-colors"
-                >
-                  Admin
-                </button>
-              </div>
-              {adminError && (
-                <p className="mt-2 text-sm text-red-500 font-medium text-left">Incorrect password.</p>
-              )}
+          </aside>
+          <section className="bg-white rounded-[32px] shadow-xl overflow-hidden">
+            <div style={{ backgroundColor: YL.primary }} className="px-8 py-5"><div className="text-white/60 text-xs font-bold uppercase tracking-widest">Question Flow</div><div className="text-white font-extrabold text-lg">Flavor Test</div></div>
+            <div className="p-6 md:p-8">
+              <div className="mb-6"><div className="flex justify-between text-xs font-semibold text-gray-400 mb-2"><span>Question {currentQuestion + 1} / {questions.length}</span><span>{Math.round(progress)}%</span></div><div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden"><div className="h-full rounded-full transition-all duration-500 ease-out" style={{ width: `${progress}%`, backgroundColor: YL.primary }} /></div></div>
+              <div className="rounded-3xl p-6 mb-6 text-center" style={{ backgroundColor: YL.primaryLight }}><p className="text-xl md:text-2xl font-black text-gray-800">{questions[currentQuestion].text}</p></div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">{questions[currentQuestion].options.map((option, index) => <button key={`${questions[currentQuestion].id}-${option.label}`} onClick={() => handleAnswer(index)} style={{ backgroundColor: YL.primary }} className="text-white px-6 py-5 rounded-3xl font-bold text-base hover:opacity-90 active:scale-95 transition-all duration-150 shadow-md text-left relative overflow-hidden"><div className="absolute top-3 right-3 opacity-20"><Sparkles className="w-5 h-5" /></div><div className="text-lg font-extrabold mb-1 leading-tight">{option.label}</div><div className="text-sm opacity-80 font-normal leading-6">{option.description}</div></button>)}</div>
+              <div className="flex gap-2 justify-center flex-wrap"><button onClick={resetTest} className="bg-gray-100 text-gray-500 px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-200 transition-colors flex items-center gap-1.5"><RotateCcw className="w-3.5 h-3.5" />Start Over</button><button onClick={handlePrevious} disabled={currentQuestion === 0} className="bg-gray-100 text-gray-500 px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-200 transition-colors flex items-center gap-1.5 disabled:opacity-40"><ChevronLeft className="w-3.5 h-3.5" />Previous</button></div>
             </div>
-          </div>
+          </section>
         </div>
       </div>
     );
   }
 
-  if (recommendation) {
-    const flavorData = flavors[recommendation.flavor] || { category: 'classic', description: 'Delicious yogurt flavor' };
+  if (stage === 'result') {
+    const flavorData = flavors[recommendation?.flavor] || { category: 'classic', description: 'A Yogurtland favorite.' };
     const flavorCategory = flavorCategories[flavorData.category] || flavorCategories.classic;
-    const recommendedToppings = recommendation.toppings || (recommendation.topping ? [recommendation.topping] : []);
-
     return (
-      <div style={{ backgroundColor: YL.bg }} className="min-h-screen flex items-center justify-center p-4">
-        <div className="bg-white rounded-3xl shadow-xl text-center max-w-lg w-full animate-scaleIn overflow-hidden">
-          <div style={{ backgroundColor: '#FFFFFF' }} className="px-8 pt-8 pb-6">
-            <img
-              src="/yogurtland-logo.png"
-              alt="Yogurtland"
-              className="h-12 mx-auto mb-4 object-contain"
-            />
-            <h1 className="text-3xl font-extrabold" style={{ color: YL.primary }}>Your Recommendation!</h1>
-            <p className="mt-1 text-sm" style={{ color: YL.primaryDark }}>This combo best matches your taste.</p>
-          </div>
-
-          <div className="p-6 space-y-4">
-            <div className="rounded-2xl p-5 text-left" style={{ backgroundColor: YL.primaryLight }}>
-              <div className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: YL.primary }}>
-                Recommended Flavor
+      <div style={{ backgroundColor: YL.bg }} className="min-h-screen px-4 py-8">
+        <div className="max-w-6xl mx-auto grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+          <section className="bg-white rounded-[32px] shadow-xl overflow-hidden">
+            <div className="px-8 pt-8 pb-6" style={{ background: `linear-gradient(135deg, ${YL.primaryLight} 0%, #ffffff 100%)` }}>
+              <img src="/yogurtland-logo.png" alt="Yogurtland" className="h-10 object-contain mb-4" />
+              <div className="text-xs font-black uppercase tracking-[0.28em]" style={{ color: YL.primary }}>Flavor Personality</div>
+              <h1 className="mt-3 text-4xl font-black leading-tight" style={{ color: YL.ink }}>{recommendation?.personality}</h1>
+            </div>
+            <div className="p-8 space-y-5">
+              <div className="rounded-3xl p-5" style={{ backgroundColor: YL.primaryLight }}>
+                <div className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: YL.primary }}>Recommended Flavor</div>
+                <div className="flex items-center gap-4"><span className="text-5xl">{flavorCategory.icon}</span><div><div className="text-2xl font-extrabold text-gray-800">{recommendation?.flavor}</div><div className="text-sm text-gray-500 mt-0.5">{flavorData.description}</div></div></div>
               </div>
-              <div className="flex items-center gap-4">
-                <span className="text-5xl">{flavorCategory.icon}</span>
+              <div className="rounded-3xl p-5" style={{ backgroundColor: YL.greenLight }}>
+                <div className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: YL.green }}>Recommended Toppings</div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">{(recommendation?.toppings || []).map((topping) => <div key={topping} className="bg-white rounded-2xl p-4 flex items-center gap-3"><span className="text-3xl">{toppings[topping]?.icon || '•'}</span><div className="text-lg font-extrabold text-gray-800">{topping}</div></div>)}</div>
+              </div>
+              <div className="flex gap-3"><button onClick={() => setStage('discover')} style={{ backgroundColor: YL.primary }} className="flex-1 text-white px-6 py-3.5 rounded-xl font-bold hover:opacity-90 transition-opacity">Discover Community Combos</button><button onClick={resetTest} className="flex-1 bg-gray-100 text-gray-600 px-6 py-3.5 rounded-xl font-bold hover:bg-gray-200 transition-colors">Retake Test</button></div>
+            </div>
+          </section>
+          <aside className="space-y-6">
+            <section className="bg-white rounded-[32px] shadow-xl p-7">
+              <div className="flex items-center gap-2 text-sm font-bold" style={{ color: YL.primary }}><Users className="w-4 h-4" /> Similar Community Picks</div>
+              <div className="mt-5 space-y-3">{visibleCombos.slice(0, 3).map((combo) => <ComboCard key={combo.id} combo={combo} colors={YL} onLike={handleLikeCombo} isLiking={likingComboId === combo.id} />)}</div>
+            </section>
+            <section className="bg-white rounded-[32px] shadow-xl p-7">
+              <div className="text-sm font-bold" style={{ color: YL.primary }}>Popular At This Store</div>
+              <div className="mt-4 space-y-3">{popularStoreCombos.map((combo) => <div key={combo.id} className="rounded-2xl bg-gray-50 px-4 py-3"><div className="font-bold text-gray-800">{combo.title}</div><div className="text-sm text-gray-500">{combo.flavor} + {combo.toppings.join(' + ')}</div></div>)}</div>
+            </section>
+          </aside>
+        </div>
+      </div>
+    );
+  }
+
+  if (stage === 'discover') {
+    return (
+      <div style={{ backgroundColor: YL.bg }} className="min-h-screen px-4 py-8">
+        <div className="max-w-6xl mx-auto bg-white rounded-[32px] shadow-xl overflow-hidden">
+          <div className="px-8 py-8 md:px-10" style={{ backgroundColor: YL.primary }}>
+            <div className="text-white/60 text-xs font-bold uppercase tracking-[0.28em]">Discover</div>
+            <h1 className="mt-3 text-4xl font-black text-white">Browse combos from the community.</h1>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-white/80">
+              Switch between store-matched picks and the full community feed, then sort by what is trending or what was just shared.
+            </p>
+          </div>
+          <div className="p-8 md:p-10">
+            {combosError && <div className="mb-5 rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-600">{combosError}</div>}
+            <div className="mb-6 rounded-3xl border border-black/5 bg-gray-50 p-5">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                 <div>
-                  <div className="text-2xl font-extrabold text-gray-800">{recommendation.flavor || 'None'}</div>
-                  <div className="text-sm text-gray-500 mt-0.5">{flavorData.description}</div>
+                  <div className="flex items-center gap-2 text-sm font-bold" style={{ color: YL.primary }}>
+                    <SlidersHorizontal className="h-4 w-4" />
+                    Discover Controls
+                  </div>
+                  <div className="mt-2 text-sm text-gray-500">
+                    {discoverScope === 'store' && selectedStoreData
+                      ? `Showing combos that fit ${selectedStoreData.name}.`
+                      : 'Showing every combo shared across the community feed.'}
+                  </div>
+                </div>
+                <div className="flex flex-col gap-4 md:flex-row">
+                  <div>
+                    <div className="mb-2 text-xs font-black uppercase tracking-[0.22em] text-gray-400">Scope</div>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setDiscoverScope('store')}
+                        className="rounded-full px-4 py-2 text-sm font-bold transition-colors"
+                        style={{
+                          backgroundColor: discoverScope === 'store' ? YL.primary : '#ffffff',
+                          color: discoverScope === 'store' ? '#ffffff' : YL.primary
+                        }}
+                      >
+                        This Store
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDiscoverScope('all')}
+                        className="rounded-full border border-black/5 px-4 py-2 text-sm font-bold transition-colors"
+                        style={{
+                          backgroundColor: discoverScope === 'all' ? YL.primary : '#ffffff',
+                          color: discoverScope === 'all' ? '#ffffff' : YL.primary
+                        }}
+                      >
+                        All Stores
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="mb-2 text-xs font-black uppercase tracking-[0.22em] text-gray-400">Sort</div>
+                    <div className="flex flex-wrap gap-2">
+                      {Object.entries(DISCOVER_SORTS).map(([value, label]) => (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => setDiscoverSort(value)}
+                          className="rounded-full border border-black/5 px-4 py-2 text-sm font-bold transition-colors"
+                          style={{
+                            backgroundColor: discoverSort === value ? YL.greenLight : '#ffffff',
+                            color: discoverSort === value ? YL.greenDark : '#4b5563'
+                          }}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-
-            <div className="rounded-2xl p-5 text-left" style={{ backgroundColor: YL.greenLight }}>
-              <div className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: YL.green }}>
-                Recommended Toppings
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {recommendedToppings.length > 0 ? recommendedToppings.map((topping, index) => {
-                  const toppingData = toppings[topping] || { category: 'candy', icon: '?' };
-                  return (
-                    <div key={`${topping}-${index}`} className="bg-white rounded-xl p-3 flex items-center gap-3">
-                      <span className="text-3xl">{toppingData.icon}</span>
-                      <div className="text-lg font-extrabold text-gray-800">{topping}</div>
-                    </div>
-                  );
-                }) : (
-                  <div className="bg-white rounded-xl p-3 text-lg font-extrabold text-gray-800">None</div>
+              <div className="mt-4 flex flex-wrap gap-3 text-sm text-gray-500">
+                <span className="rounded-full bg-white px-3 py-1 font-semibold text-gray-700">{discoverCombos.length} combos</span>
+                {selectedStoreData && (
+                  <span className="rounded-full bg-white px-3 py-1 font-semibold text-gray-700">{selectedStoreData.name}</span>
                 )}
+                <span className="rounded-full bg-white px-3 py-1 font-semibold text-gray-700">{DISCOVER_SORTS[discoverSort]} order</span>
               </div>
             </div>
-
-            <div className="flex gap-3 pt-1">
-              <button
-                onClick={resetGame}
-                style={{ backgroundColor: YL.primary }}
-                className="flex-1 text-white px-6 py-3.5 rounded-xl font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
-              >
-                <RefreshCw className="w-4 h-4" />
-                Try Again
-              </button>
-              <button
-                onClick={() => { resetGame(); setSelectedStore(null); }}
-                className="flex-1 bg-gray-100 text-gray-600 px-6 py-3.5 rounded-xl font-bold hover:bg-gray-200 transition-colors flex items-center justify-center gap-2"
-              >
-                <Store className="w-4 h-4" />
-                Change Store
-              </button>
-            </div>
-
-            <a
-              href="https://www.yogurtland.com/flavorfinder"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: YL.primary }}
-              className="inline-flex items-center justify-center w-full px-6 py-3 rounded-xl font-bold border-2 transition-colors hover:bg-pink-50"
-            >
-              Flavor Finder
-            </a>
+            {isLoadingCombos ? (
+              <div className="rounded-3xl border border-dashed border-gray-200 p-8 text-center text-gray-500">Loading community combos...</div>
+            ) : discoverCombos.length > 0 ? (
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {discoverCombos.map((combo) => (
+                  <ComboCard
+                    key={combo.id}
+                    combo={combo}
+                    colors={YL}
+                    actionLabel="Try this flavor"
+                    onAction={handleTryCombo}
+                    onLike={handleLikeCombo}
+                    isLiking={likingComboId === combo.id}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-3xl border border-dashed border-gray-200 p-8 text-center text-gray-500">
+                No combos match this store filter yet. Switch to All Stores or create the first combo.
+              </div>
+            )}
+            <div className="mt-8 flex gap-3 justify-center flex-wrap"><button onClick={handleStartShare} style={{ backgroundColor: YL.primary }} className="text-white px-6 py-3.5 rounded-xl font-bold hover:opacity-90 transition-opacity">Create My Combo</button><button onClick={() => setStage('result')} className="bg-gray-100 text-gray-600 px-6 py-3.5 rounded-xl font-bold hover:bg-gray-200 transition-colors">Back To Result</button></div>
           </div>
         </div>
       </div>
     );
   }
 
-  const progress = ((currentQuestion + 1) / questions.length) * 100;
-
-  return (
-    <div style={{ backgroundColor: YL.bg }} className="min-h-screen flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl shadow-xl max-w-xl w-full animate-slideUp overflow-hidden">
-        <div style={{ backgroundColor: YL.primary }} className="px-8 py-5 flex items-center justify-between">
-          <div>
-            <div className="text-white/60 text-xs font-bold uppercase tracking-widest">Yogurtland</div>
-            <div className="text-white font-extrabold text-lg">Taste Test</div>
-          </div>
-          <div className="flex items-center gap-1.5 bg-white/20 rounded-full px-3 py-1.5 text-xs text-white font-semibold">
-            <Store className="w-3 h-3" />
-            {findStoreByKey(selectedStore)?.name}
-          </div>
-        </div>
-
-        <div className="p-6">
-          <div className="mb-6">
-            <div className="flex justify-between text-xs font-semibold text-gray-400 mb-2">
-              <span>Question {currentQuestion + 1} / {questions.length}</span>
-              <span>{Math.round(progress)}%</span>
-            </div>
-            <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
-              <div
-                className="h-full rounded-full transition-all duration-500 ease-out"
-                style={{ width: `${progress}%`, backgroundColor: YL.primary }}
-              />
-            </div>
-          </div>
-
-          <div className="rounded-2xl p-6 mb-6 text-center" style={{ backgroundColor: YL.primaryLight }}>
-            <p className="text-xl font-bold text-gray-800">{questions[currentQuestion].text}</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
-            {questions[currentQuestion].options.map((option, index) => (
-              <button
-                key={index}
-                onClick={() => handleAnswer(index)}
-                style={{ backgroundColor: YL.primary }}
-                className="text-white px-6 py-5 rounded-2xl font-bold text-base hover:opacity-90 active:scale-95 transition-all duration-150 shadow-md text-left relative overflow-hidden group"
-              >
-                <div className="absolute top-3 right-3 opacity-20 group-hover:opacity-50 transition-opacity">
-                  <Sparkles className="w-5 h-5" />
-                </div>
-                <div className="text-lg font-extrabold mb-1 leading-tight">{option.label}</div>
-                {option.description && (
-                  <div className="text-sm opacity-75 font-normal">{option.description}</div>
-                )}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex gap-2 justify-center flex-wrap">
-            <button
-              onClick={resetGame}
-              className="bg-gray-100 text-gray-500 px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-200 transition-colors flex items-center gap-1.5"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              Start Over
-            </button>
-            <button
-              onClick={handlePrevious}
-              disabled={currentQuestion === 0}
-              className="bg-gray-100 text-gray-500 px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-200 transition-colors flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              <ChevronLeft className="w-3.5 h-3.5" />
-              Previous
-            </button>
-            <button
-              onClick={() => setSelectedStore(null)}
-              className="bg-gray-100 text-gray-500 px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-200 transition-colors flex items-center gap-1.5"
-            >
-              <Store className="w-3.5 h-3.5" />
-              Change Store
-            </button>
-          </div>
-        </div>
+  if (stage === 'share') {
+    return (
+      <div style={{ backgroundColor: YL.bg }} className="min-h-screen px-4 py-8">
+        <ShareComboForm
+          colors={YL}
+          shareForm={shareForm}
+          availableFlavors={availableFlavors}
+          availableToppings={availableToppings}
+          recommendation={recommendation}
+          onFieldChange={(field, value) => setShareForm((current) => ({ ...current, [field]: value }))}
+          onToggleTopping={(topping) => setShareForm((current) => ({ ...current, toppings: current.toppings.includes(topping) ? current.toppings.filter((item) => item !== topping) : [...current.toppings, topping].slice(0, 3) }))}
+          onSubmit={submitCombo}
+          onBack={() => setStage('discover')}
+        />
+        {isSubmittingCombo && <div className="max-w-6xl mx-auto mt-4 rounded-2xl bg-white px-4 py-3 text-sm text-gray-600 shadow-sm">Saving your combo...</div>}
       </div>
-    </div>
-  );
+    );
+  }
+
+  if (stage === 'visit') {
+    const flavorData = flavors[recommendation?.flavor] || { category: 'classic' };
+    return (
+      <div style={{ backgroundColor: YL.bg }} className="min-h-screen px-4 py-8">
+        <VisitSummary
+          colors={YL}
+          flavorIcon={(flavorCategories[flavorData.category] || flavorCategories.classic).icon}
+          recommendation={recommendation}
+          couponCode={couponCode}
+          storeName={selectedStoreData?.name}
+          couponStatus={couponStatus || (isSavingCoupon ? { type: 'success', message: 'Saving coupon...' } : null)}
+          couponHistory={couponHistory}
+          onRegenerate={() => { setCouponCode(buildCouponCode(recommendation?.flavor || 'combo')); setCouponStatus(null); }}
+          onSaveCoupon={handleSaveCoupon}
+          onReset={resetFlow}
+        />
+      </div>
+    );
+  }
+
+  return null;
 }
 
 export default App;
-
-

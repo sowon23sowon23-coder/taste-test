@@ -1,4 +1,3 @@
-// Yogurtland flavor data
 export const flavorCategories = {
   tart: {
     name: 'Tart',
@@ -12,7 +11,7 @@ export const flavorCategories = {
   },
   chocolate: {
     name: 'Chocolate',
-    color: 'from-amber-700 to-yellow-900',
+    color: 'from-stone-700 to-stone-900',
     icon: '🍫'
   },
   fruity: {
@@ -22,57 +21,86 @@ export const flavorCategories = {
   },
   specialty: {
     name: 'Specialty',
-    color: 'from-purple-400 to-indigo-500',
+    color: 'from-fuchsia-500 to-indigo-500',
     icon: '✨'
   }
 };
 
 export const flavors = {
-  // Tart
-  'Original Tart': { category: 'tart', description: 'Classic tangy yogurt' },
-  'Pomegranate Tart': { category: 'tart', description: 'Pomegranate tart yogurt' },
-
-  // Classic
-  'Vanilla': { category: 'classic', description: 'Smooth and creamy classic' },
-  'French Vanilla': { category: 'classic', description: 'Rich French vanilla' },
-
-  // Chocolate
-  'Chocolate': { category: 'chocolate', description: 'Deep, rich chocolate' },
-  'Dutch Chocolate': { category: 'chocolate', description: 'Rich Dutch chocolate' },
-  'Mint Chocolate Chip': { category: 'chocolate', description: 'Refreshing mint with chocolate chips' },
-
-  // Fruity
-  'Strawberry': { category: 'fruity', description: 'Sweet and tangy strawberry' },
-  'Mango': { category: 'fruity', description: 'Tropical mango sweetness' },
-  'Lemon': { category: 'fruity', description: 'Bright lemon sorbet' },
-  'Peach': { category: 'fruity', description: 'Sweet summer peach' },
-  'Passion Fruit': { category: 'fruity', description: 'Tropical passion fruit' },
-
-  // Specialty
-  'Cookies & Cream': { category: 'specialty', description: 'Loaded with Oreo cookies' },
-  'Cake Batter': { category: 'specialty', description: 'Birthday cake batter flavor' },
-  'Peanut Butter': { category: 'specialty', description: 'Rich peanut butter' }
+  'Original Tart': {
+    category: 'tart',
+    description: 'Tangy, crisp, and made for bright toppings.'
+  },
+  'Pomegranate Tart': {
+    category: 'tart',
+    description: 'A tart base with a fruitier finish.'
+  },
+  Vanilla: {
+    category: 'classic',
+    description: 'Smooth and easy to pair with almost anything.'
+  },
+  'French Vanilla': {
+    category: 'classic',
+    description: 'A richer vanilla profile with dessert energy.'
+  },
+  Chocolate: {
+    category: 'chocolate',
+    description: 'Full cocoa flavor for classic chocolate lovers.'
+  },
+  'Dutch Chocolate': {
+    category: 'chocolate',
+    description: 'A deeper, darker chocolate option.'
+  },
+  'Mint Chocolate Chip': {
+    category: 'chocolate',
+    description: 'Cool mint paired with chocolate crunch.'
+  },
+  Strawberry: {
+    category: 'fruity',
+    description: 'Sweet berry flavor with an approachable finish.'
+  },
+  Mango: {
+    category: 'fruity',
+    description: 'Juicy tropical flavor that feels bright and sunny.'
+  },
+  Lemon: {
+    category: 'fruity',
+    description: 'Citrusy and light with a refreshing edge.'
+  },
+  Peach: {
+    category: 'fruity',
+    description: 'Soft stone-fruit sweetness with a mellow finish.'
+  },
+  'Passion Fruit': {
+    category: 'fruity',
+    description: 'Vibrant tropical flavor with a tart lift.'
+  },
+  'Cookies & Cream': {
+    category: 'specialty',
+    description: 'Creamy base folded into cookie flavor.'
+  },
+  'Cake Batter': {
+    category: 'specialty',
+    description: 'Sweet, playful, and built for treat-style combos.'
+  },
+  'Peanut Butter': {
+    category: 'specialty',
+    description: 'Nutty, rich, and ideal for indulgent pairings.'
+  }
 };
 
 export const toppings = {
-  // Chocolate
   'Chocolate Chips': { category: 'chocolate', icon: '🍫' },
-  'Oreo': { category: 'chocolate', icon: '🍪' },
+  Oreo: { category: 'chocolate', icon: '🍪' },
   'Brownie Bites': { category: 'chocolate', icon: '🧁' },
-
-  // Fruits
-  'Fresh Fruit': { category: 'fruit', icon: '🍓' },
-  'Jelly': { category: 'fruit', icon: '🍬' },
-  'Strawberries': { category: 'fruit', icon: '🍓' },
-  'Mango': { category: 'fruit', icon: '🥭' },
-
-  // Candy
-  'Cookies': { category: 'candy', icon: '🍪' },
-  'M&Ms': { category: 'candy', icon: '🌈' },
-  'Gummy Bears': { category: 'candy', icon: '🐻' },
-
-  // Sauces
-  'Caramel': { category: 'sauce', icon: '🍯' },
-  'Whipped Cream': { category: 'sauce', icon: '🥛' },
+  'Fresh Fruit': { category: 'fruit', icon: '🍍' },
+  Jelly: { category: 'fruit', icon: '🫐' },
+  Strawberries: { category: 'fruit', icon: '🍓' },
+  Mango: { category: 'fruit', icon: '🥭' },
+  Cookies: { category: 'candy', icon: '🍪' },
+  'M&Ms': { category: 'candy', icon: '🍬' },
+  'Gummy Bears': { category: 'candy', icon: '🧸' },
+  Caramel: { category: 'sauce', icon: '🍯' },
+  'Whipped Cream': { category: 'sauce', icon: '☁️' },
   'Hot Fudge': { category: 'sauce', icon: '🍫' }
 };
