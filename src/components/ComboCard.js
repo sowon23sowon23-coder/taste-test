@@ -9,11 +9,11 @@ const formatCreatedAt = (value) => {
 
 export function ComboCard({ combo, colors, actionLabel, onAction, onLike, isLiking }) {
   return (
-    <div className="rounded-3xl border border-black/5 bg-white p-5 shadow-sm">
+    <div className="rounded-[24px] border border-black/5 bg-white p-4 shadow-sm md:rounded-3xl md:p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <div className="text-xl font-extrabold text-gray-800">{combo.title}</div>
-          <div className="text-sm text-gray-500">
+          <div className="text-lg font-extrabold text-gray-800 md:text-xl">{combo.title}</div>
+          <div className="text-sm leading-5 text-gray-500">
             {combo.vibe} by {combo.author}
           </div>
           {formatCreatedAt(combo.createdAt) && (
@@ -24,7 +24,7 @@ export function ComboCard({ combo, colors, actionLabel, onAction, onLike, isLiki
           type="button"
           onClick={() => onLike?.(combo)}
           disabled={isLiking}
-          className="rounded-full px-3 py-1 text-xs font-bold disabled:opacity-60"
+          className="min-h-[36px] rounded-full px-3 py-1 text-xs font-bold disabled:opacity-60"
           style={{ backgroundColor: colors.primaryLight, color: colors.primary }}
         >
           {isLiking ? 'Liking...' : `${combo.likes} likes`}
@@ -38,7 +38,7 @@ export function ComboCard({ combo, colors, actionLabel, onAction, onLike, isLiki
       {onAction && (
         <button
           onClick={() => onAction(combo)}
-          className="mt-5 w-full rounded-xl px-4 py-3 text-sm font-bold"
+          className="safe-bottom mt-5 w-full rounded-2xl px-4 py-3.5 text-sm font-bold"
           style={{ backgroundColor: colors.greenLight, color: colors.greenDark }}
         >
           {actionLabel}

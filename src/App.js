@@ -346,8 +346,8 @@ function App() {
 
   if (stage === 'home') {
     return (
-      <div className="min-h-screen px-4 py-8 md:px-6" style={{ background: `radial-gradient(circle at top left, ${YL.primaryLight} 0%, ${YL.bg} 45%, ${YL.paper} 100%)` }}>
-        <div className="max-w-6xl mx-auto grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+      <div className="min-h-screen px-4 py-4 md:px-6 md:py-8" style={{ background: `radial-gradient(circle at top left, ${YL.primaryLight} 0%, ${YL.bg} 45%, ${YL.paper} 100%)` }}>
+        <div className="mx-auto grid max-w-6xl gap-4 lg:grid-cols-[1.15fr_0.85fr] lg:gap-6">
           <FlowOverview colors={YL} steps={FLOW_STEPS} combos={starterCommunityCombos} />
           <StorePickerPanel
             colors={YL}
@@ -380,14 +380,14 @@ function App() {
 
   if (stage === 'play') {
     return (
-      <div style={{ backgroundColor: YL.bg }} className="min-h-screen px-4 py-8">
-        <div className="max-w-5xl mx-auto grid gap-6 lg:grid-cols-[0.75fr_1.25fr]">
-          <aside className="bg-white rounded-[32px] shadow-xl overflow-hidden">
-            <div className="px-7 py-7" style={{ backgroundColor: YL.primary }}>
+      <div style={{ backgroundColor: YL.bg }} className="min-h-screen px-4 py-4 md:py-8">
+        <div className="mx-auto grid max-w-5xl gap-4 lg:grid-cols-[0.75fr_1.25fr] lg:gap-6">
+          <aside className="overflow-hidden rounded-[28px] bg-white shadow-xl md:rounded-[32px]">
+            <div className="px-5 py-6 md:px-7 md:py-7" style={{ backgroundColor: YL.primary }}>
               <div className="text-white/60 text-xs font-bold uppercase tracking-widest">Yogurtland</div>
-              <div className="mt-2 text-white font-extrabold text-3xl leading-tight">Play the Flavor Test</div>
+              <div className="mt-2 text-2xl font-extrabold leading-tight text-white md:text-3xl">Play the Flavor Test</div>
             </div>
-            <div className="p-7 space-y-5">
+            <div className="space-y-4 p-5 md:space-y-5 md:p-7">
               <div className="rounded-2xl p-4" style={{ backgroundColor: YL.primaryLight }}>
                 <div className="text-xs font-black uppercase tracking-[0.24em]" style={{ color: YL.primary }}>Current Store</div>
                 <div className="mt-2 text-lg font-extrabold text-gray-800">{selectedStoreData?.name}</div>
@@ -402,13 +402,13 @@ function App() {
               </div>
             </div>
           </aside>
-          <section className="bg-white rounded-[32px] shadow-xl overflow-hidden">
-            <div style={{ backgroundColor: YL.primary }} className="px-8 py-5"><div className="text-white/60 text-xs font-bold uppercase tracking-widest">Question Flow</div><div className="text-white font-extrabold text-lg">Flavor Test</div></div>
-            <div className="p-6 md:p-8">
+          <section className="overflow-hidden rounded-[28px] bg-white shadow-xl md:rounded-[32px]">
+            <div style={{ backgroundColor: YL.primary }} className="px-5 py-4 md:px-8 md:py-5"><div className="text-white/60 text-xs font-bold uppercase tracking-widest">Question Flow</div><div className="text-white font-extrabold text-lg">Flavor Test</div></div>
+            <div className="p-5 md:p-8">
               <div className="mb-6"><div className="flex justify-between text-xs font-semibold text-gray-400 mb-2"><span>Question {currentQuestion + 1} / {questions.length}</span><span>{Math.round(progress)}%</span></div><div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden"><div className="h-full rounded-full transition-all duration-500 ease-out" style={{ width: `${progress}%`, backgroundColor: YL.primary }} /></div></div>
-              <div className="rounded-3xl p-6 mb-6 text-center" style={{ backgroundColor: YL.primaryLight }}><p className="text-xl md:text-2xl font-black text-gray-800">{questions[currentQuestion].text}</p></div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">{questions[currentQuestion].options.map((option, index) => <button key={`${questions[currentQuestion].id}-${option.label}`} onClick={() => handleAnswer(index)} style={{ backgroundColor: YL.primary }} className="text-white px-6 py-5 rounded-3xl font-bold text-base hover:opacity-90 active:scale-95 transition-all duration-150 shadow-md text-left relative overflow-hidden"><div className="absolute top-3 right-3 opacity-20"><Sparkles className="w-5 h-5" /></div><div className="text-lg font-extrabold mb-1 leading-tight">{option.label}</div><div className="text-sm opacity-80 font-normal leading-6">{option.description}</div></button>)}</div>
-              <div className="flex gap-2 justify-center flex-wrap"><button onClick={resetTest} className="bg-gray-100 text-gray-500 px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-200 transition-colors flex items-center gap-1.5"><RotateCcw className="w-3.5 h-3.5" />Start Over</button><button onClick={handlePrevious} disabled={currentQuestion === 0} className="bg-gray-100 text-gray-500 px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-200 transition-colors flex items-center gap-1.5 disabled:opacity-40"><ChevronLeft className="w-3.5 h-3.5" />Previous</button></div>
+              <div className="mb-6 rounded-[24px] p-5 text-center md:rounded-3xl md:p-6" style={{ backgroundColor: YL.primaryLight }}><p className="text-xl font-black text-gray-800 md:text-2xl">{questions[currentQuestion].text}</p></div>
+              <div className="mb-6 grid grid-cols-1 gap-3 md:grid-cols-2">{questions[currentQuestion].options.map((option, index) => <button key={`${questions[currentQuestion].id}-${option.label}`} onClick={() => handleAnswer(index)} style={{ backgroundColor: YL.primary }} className="relative min-h-[112px] overflow-hidden rounded-[24px] px-5 py-5 text-left text-white shadow-md transition-all duration-150 hover:opacity-90 active:scale-95 md:rounded-3xl md:px-6"><div className="absolute top-3 right-3 opacity-20"><Sparkles className="h-5 w-5" /></div><div className="mb-1 text-lg font-extrabold leading-tight">{option.label}</div><div className="text-sm font-normal leading-6 opacity-80">{option.description}</div></button>)}</div>
+              <div className="flex flex-col gap-2 sm:flex-row sm:justify-center"><button onClick={resetTest} className="flex items-center justify-center gap-1.5 rounded-2xl bg-gray-100 px-4 py-3 text-sm font-semibold text-gray-500 transition-colors hover:bg-gray-200"><RotateCcw className="h-3.5 w-3.5" />Start Over</button><button onClick={handlePrevious} disabled={currentQuestion === 0} className="flex items-center justify-center gap-1.5 rounded-2xl bg-gray-100 px-4 py-3 text-sm font-semibold text-gray-500 transition-colors hover:bg-gray-200 disabled:opacity-40"><ChevronLeft className="h-3.5 w-3.5" />Previous</button></div>
             </div>
           </section>
         </div>
@@ -420,32 +420,32 @@ function App() {
     const flavorData = flavors[recommendation?.flavor] || { category: 'classic', description: 'A Yogurtland favorite.' };
     const flavorCategory = flavorCategories[flavorData.category] || flavorCategories.classic;
     return (
-      <div style={{ backgroundColor: YL.bg }} className="min-h-screen px-4 py-8">
-        <div className="max-w-6xl mx-auto grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
-          <section className="bg-white rounded-[32px] shadow-xl overflow-hidden">
-            <div className="px-8 pt-8 pb-6" style={{ background: `linear-gradient(135deg, ${YL.primaryLight} 0%, #ffffff 100%)` }}>
+      <div style={{ backgroundColor: YL.bg }} className="min-h-screen px-4 py-4 md:py-8">
+        <div className="mx-auto grid max-w-6xl gap-4 lg:grid-cols-[0.95fr_1.05fr] lg:gap-6">
+          <section className="overflow-hidden rounded-[28px] bg-white shadow-xl md:rounded-[32px]">
+            <div className="px-5 pb-5 pt-6 md:px-8 md:pb-6 md:pt-8" style={{ background: `linear-gradient(135deg, ${YL.primaryLight} 0%, #ffffff 100%)` }}>
               <img src="/yogurtland-logo.png" alt="Yogurtland" className="h-10 object-contain mb-4" />
               <div className="text-xs font-black uppercase tracking-[0.28em]" style={{ color: YL.primary }}>Flavor Personality</div>
-              <h1 className="mt-3 text-4xl font-black leading-tight" style={{ color: YL.ink }}>{recommendation?.personality}</h1>
+              <h1 className="mt-3 text-3xl font-black leading-tight md:text-4xl" style={{ color: YL.ink }}>{recommendation?.personality}</h1>
             </div>
-            <div className="p-8 space-y-5">
-              <div className="rounded-3xl p-5" style={{ backgroundColor: YL.primaryLight }}>
+            <div className="space-y-4 p-5 md:space-y-5 md:p-8">
+              <div className="rounded-[24px] p-5 md:rounded-3xl" style={{ backgroundColor: YL.primaryLight }}>
                 <div className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: YL.primary }}>Recommended Flavor</div>
                 <div className="flex items-center gap-4"><span className="text-5xl">{flavorCategory.icon}</span><div><div className="text-2xl font-extrabold text-gray-800">{recommendation?.flavor}</div><div className="text-sm text-gray-500 mt-0.5">{flavorData.description}</div></div></div>
               </div>
-              <div className="rounded-3xl p-5" style={{ backgroundColor: YL.greenLight }}>
+              <div className="rounded-[24px] p-5 md:rounded-3xl" style={{ backgroundColor: YL.greenLight }}>
                 <div className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: YL.green }}>Recommended Toppings</div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">{(recommendation?.toppings || []).map((topping) => <div key={topping} className="bg-white rounded-2xl p-4 flex items-center gap-3"><span className="text-3xl">{toppings[topping]?.icon || '•'}</span><div className="text-lg font-extrabold text-gray-800">{topping}</div></div>)}</div>
               </div>
-              <div className="flex gap-3"><button onClick={() => setStage('discover')} style={{ backgroundColor: YL.primary }} className="flex-1 text-white px-6 py-3.5 rounded-xl font-bold hover:opacity-90 transition-opacity">Discover Community Combos</button><button onClick={resetTest} className="flex-1 bg-gray-100 text-gray-600 px-6 py-3.5 rounded-xl font-bold hover:bg-gray-200 transition-colors">Retake Test</button></div>
+              <div className="flex flex-col gap-3 sm:flex-row"><button onClick={() => setStage('discover')} style={{ backgroundColor: YL.primary }} className="safe-bottom flex-1 rounded-2xl px-6 py-4 text-base font-bold text-white transition-opacity hover:opacity-90">Discover Community Combos</button><button onClick={resetTest} className="flex-1 rounded-2xl bg-gray-100 px-6 py-4 text-base font-bold text-gray-600 transition-colors hover:bg-gray-200">Retake Test</button></div>
             </div>
           </section>
           <aside className="space-y-6">
-            <section className="bg-white rounded-[32px] shadow-xl p-7">
+            <section className="rounded-[28px] bg-white p-5 shadow-xl md:rounded-[32px] md:p-7">
               <div className="flex items-center gap-2 text-sm font-bold" style={{ color: YL.primary }}><Users className="w-4 h-4" /> Similar Community Picks</div>
               <div className="mt-5 space-y-3">{visibleCombos.slice(0, 3).map((combo) => <ComboCard key={combo.id} combo={combo} colors={YL} onLike={handleLikeCombo} isLiking={likingComboId === combo.id} />)}</div>
             </section>
-            <section className="bg-white rounded-[32px] shadow-xl p-7">
+            <section className="rounded-[28px] bg-white p-5 shadow-xl md:rounded-[32px] md:p-7">
               <div className="text-sm font-bold" style={{ color: YL.primary }}>Popular At This Store</div>
               <div className="mt-4 space-y-3">{popularStoreCombos.map((combo) => <div key={combo.id} className="rounded-2xl bg-gray-50 px-4 py-3"><div className="font-bold text-gray-800">{combo.title}</div><div className="text-sm text-gray-500">{combo.flavor} + {combo.toppings.join(' + ')}</div></div>)}</div>
             </section>
@@ -457,18 +457,18 @@ function App() {
 
   if (stage === 'discover') {
     return (
-      <div style={{ backgroundColor: YL.bg }} className="min-h-screen px-4 py-8">
-        <div className="max-w-6xl mx-auto bg-white rounded-[32px] shadow-xl overflow-hidden">
-          <div className="px-8 py-8 md:px-10" style={{ backgroundColor: YL.primary }}>
+      <div style={{ backgroundColor: YL.bg }} className="min-h-screen px-4 py-4 md:py-8">
+        <div className="mx-auto max-w-6xl overflow-hidden rounded-[28px] bg-white shadow-xl md:rounded-[32px]">
+          <div className="px-5 py-6 md:px-10 md:py-8" style={{ backgroundColor: YL.primary }}>
             <div className="text-white/60 text-xs font-bold uppercase tracking-[0.28em]">Discover</div>
-            <h1 className="mt-3 text-4xl font-black text-white">Browse combos from the community.</h1>
+            <h1 className="mt-3 text-3xl font-black text-white md:text-4xl">Browse combos from the community.</h1>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-white/80">
               Switch between store-matched picks and the full community feed, then sort by what is trending or what was just shared.
             </p>
           </div>
-          <div className="p-8 md:p-10">
+          <div className="p-5 md:p-10">
             {combosError && <div className="mb-5 rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-600">{combosError}</div>}
-            <div className="mb-6 rounded-3xl border border-black/5 bg-gray-50 p-5">
+            <div className="mb-6 rounded-[24px] border border-black/5 bg-gray-50 p-4 md:rounded-3xl md:p-5">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                 <div>
                   <div className="flex items-center gap-2 text-sm font-bold" style={{ color: YL.primary }}>
@@ -559,7 +559,7 @@ function App() {
                 No combos match this store filter yet. Switch to All Stores or create the first combo.
               </div>
             )}
-            <div className="mt-8 flex gap-3 justify-center flex-wrap"><button onClick={handleStartShare} style={{ backgroundColor: YL.primary }} className="text-white px-6 py-3.5 rounded-xl font-bold hover:opacity-90 transition-opacity">Create My Combo</button><button onClick={() => setStage('result')} className="bg-gray-100 text-gray-600 px-6 py-3.5 rounded-xl font-bold hover:bg-gray-200 transition-colors">Back To Result</button></div>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center"><button onClick={handleStartShare} style={{ backgroundColor: YL.primary }} className="safe-bottom rounded-2xl px-6 py-4 text-base font-bold text-white transition-opacity hover:opacity-90">Create My Combo</button><button onClick={() => setStage('result')} className="rounded-2xl bg-gray-100 px-6 py-4 text-base font-bold text-gray-600 transition-colors hover:bg-gray-200">Back To Result</button></div>
           </div>
         </div>
       </div>
@@ -568,7 +568,7 @@ function App() {
 
   if (stage === 'share') {
     return (
-      <div style={{ backgroundColor: YL.bg }} className="min-h-screen px-4 py-8">
+      <div style={{ backgroundColor: YL.bg }} className="min-h-screen px-4 py-4 md:py-8">
         <ShareComboForm
           colors={YL}
           shareForm={shareForm}
@@ -580,7 +580,7 @@ function App() {
           onSubmit={submitCombo}
           onBack={() => setStage('discover')}
         />
-        {isSubmittingCombo && <div className="max-w-6xl mx-auto mt-4 rounded-2xl bg-white px-4 py-3 text-sm text-gray-600 shadow-sm">Saving your combo...</div>}
+        {isSubmittingCombo && <div className="mx-auto mt-4 max-w-6xl rounded-2xl bg-white px-4 py-3 text-sm text-gray-600 shadow-sm">Saving your combo...</div>}
       </div>
     );
   }
@@ -588,7 +588,7 @@ function App() {
   if (stage === 'visit') {
     const flavorData = flavors[recommendation?.flavor] || { category: 'classic' };
     return (
-      <div style={{ backgroundColor: YL.bg }} className="min-h-screen px-4 py-8">
+      <div style={{ backgroundColor: YL.bg }} className="min-h-screen px-4 py-4 md:py-8">
         <VisitSummary
           colors={YL}
           flavorIcon={(flavorCategories[flavorData.category] || flavorCategories.classic).icon}

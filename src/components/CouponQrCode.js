@@ -35,7 +35,7 @@ export function CouponQrCode({ value, colors }) {
   }, [colors.primaryDark, value]);
 
   return (
-    <div className="rounded-3xl border border-black/5 bg-white p-5 text-center shadow-sm">
+    <div className="rounded-[24px] border border-black/5 bg-white p-5 text-center shadow-sm md:rounded-3xl">
       <div className="text-xs font-black uppercase tracking-[0.24em]" style={{ color: colors.primary }}>
         Scan In Store
       </div>

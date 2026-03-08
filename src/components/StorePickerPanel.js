@@ -16,12 +16,12 @@ export function StorePickerPanel({
   onStart
 }) {
   return (
-    <aside className="bg-white rounded-[32px] shadow-xl overflow-hidden lg:sticky lg:top-6">
-      <div className="px-7 pt-8 pb-6" style={{ backgroundColor: colors.greenLight }}>
+    <aside className="overflow-hidden rounded-[28px] bg-white shadow-xl lg:sticky lg:top-6 md:rounded-[32px]">
+      <div className="px-5 pb-5 pt-6 md:px-7 md:pb-6 md:pt-8" style={{ backgroundColor: colors.greenLight }}>
         <p className="text-xs font-black uppercase tracking-[0.28em]" style={{ color: colors.greenDark }}>Start Here</p>
-        <h2 className="mt-3 text-3xl font-black leading-tight" style={{ color: colors.ink }}>Select a store and start the Flavor Test.</h2>
+        <h2 className="mt-3 text-2xl font-black leading-tight md:text-3xl" style={{ color: colors.ink }}>Select a store and start the Flavor Test.</h2>
       </div>
-      <div className="p-7">
+      <div className="space-y-4 p-5 md:p-7">
         <label className="block text-left text-sm font-semibold text-gray-500 mb-2 flex items-center gap-1.5">
           <Store className="w-4 h-4" />
           Select Store
@@ -35,16 +35,16 @@ export function StorePickerPanel({
             onBlur={onStoreQueryBlur}
             onChange={onStoreQueryChange}
             onKeyDown={onStoreEnter}
-            className="w-full p-4 border-2 border-gray-200 rounded-xl font-medium text-gray-700 bg-gray-50 outline-none focus:border-pink-300"
+            className="w-full rounded-2xl border-2 border-gray-200 bg-gray-50 p-4 text-base font-medium text-gray-700 outline-none focus:border-pink-300"
           />
           {isHomeStoreOpen && (
-            <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg">
+            <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg">
               {filteredHomeStores.length > 0 ? filteredHomeStores.map((store) => (
                 <button
                   key={store.id || store.name}
                   type="button"
                   onClick={() => onStoreSelect(store)}
-                  className="w-full px-4 py-2.5 text-left text-gray-700 hover:bg-gray-100"
+                  className="w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-100"
                 >
                   {store.name}
                 </button>
@@ -57,7 +57,7 @@ export function StorePickerPanel({
           onClick={onFindNearest}
           disabled={isLocating}
           style={{ backgroundColor: colors.green }}
-          className="w-full text-white px-6 py-3.5 rounded-xl font-bold hover:opacity-90 transition-opacity my-4 flex items-center justify-center gap-2 disabled:opacity-70"
+          className="flex w-full items-center justify-center gap-2 rounded-2xl px-6 py-4 text-base font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-70"
         >
           {isLocating ? <RefreshCw className="w-4 h-4 animate-spin" /> : <MapPin className="w-4 h-4" />}
           {isLocating ? 'Finding nearest store...' : 'Find Nearest Store'}
@@ -66,7 +66,7 @@ export function StorePickerPanel({
         <button
           onClick={onStart}
           style={{ backgroundColor: colors.primary }}
-          className="w-full text-white px-6 py-3.5 rounded-xl font-bold hover:opacity-90 transition-opacity"
+          className="safe-bottom w-full rounded-2xl px-6 py-4 text-base font-bold text-white transition-opacity hover:opacity-90"
         >
           Start Flavor Test
         </button>

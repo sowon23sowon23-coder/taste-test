@@ -29,14 +29,14 @@ export function VisitSummary({
   });
 
   return (
-    <div className="max-w-5xl mx-auto bg-white rounded-[32px] shadow-xl overflow-hidden">
-      <div className="px-8 py-8 md:px-10" style={{ background: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.primaryDark} 100%)` }}>
+    <div className="mx-auto max-w-5xl overflow-hidden rounded-[28px] bg-white shadow-xl md:rounded-[32px]">
+      <div className="px-5 py-7 md:px-10 md:py-8" style={{ background: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.primaryDark} 100%)` }}>
         <div className="text-xs font-black uppercase tracking-[0.28em] text-white/70">Visit</div>
-        <h1 className="mt-3 text-4xl font-black text-white">Take this combo into the store.</h1>
+        <h1 className="mt-3 text-3xl font-black text-white md:text-4xl">Take this combo into the store.</h1>
       </div>
-      <div className="p-8 md:p-10 grid gap-6 md:grid-cols-[1fr_0.9fr]">
+      <div className="grid gap-6 p-5 md:grid-cols-[1fr_0.9fr] md:p-10">
         <section className="space-y-5">
-          <div className="rounded-3xl p-5" style={{ backgroundColor: colors.primaryLight }}>
+          <div className="rounded-[24px] p-5 md:rounded-3xl" style={{ backgroundColor: colors.primaryLight }}>
             <div className="flex items-center gap-4">
               <span className="text-5xl">{flavorIcon}</span>
               <div>
@@ -45,7 +45,7 @@ export function VisitSummary({
               </div>
             </div>
           </div>
-          <div className="rounded-3xl border border-dashed p-5" style={{ borderColor: `${colors.primary}33` }}>
+          <div className="rounded-[24px] border border-dashed p-5 md:rounded-3xl" style={{ borderColor: `${colors.primary}33` }}>
             <div className="text-xs font-black uppercase tracking-[0.24em]" style={{ color: colors.primary }}>Try This Flavor</div>
             <div className="mt-3 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold" style={{ backgroundColor: colors.greenLight, color: colors.greenDark }}>
               <Ticket className="w-4 h-4" />
@@ -57,7 +57,7 @@ export function VisitSummary({
           </div>
           <CouponQrCode value={qrValue} colors={colors} />
         </section>
-        <aside className="rounded-3xl p-6" style={{ backgroundColor: colors.paper }}>
+        <aside className="rounded-[24px] p-5 md:rounded-3xl md:p-6" style={{ backgroundColor: colors.paper }}>
           <div className="flex items-center gap-2 text-sm font-bold" style={{ color: colors.primary }}>
             <MapPin className="w-4 h-4" />
             Store Connection
@@ -65,8 +65,8 @@ export function VisitSummary({
           <div className="mt-4 text-xl font-extrabold text-gray-800">{storeName}</div>
           <p className="mt-3 text-sm leading-6 text-gray-600">The online experience now ends with a clear store visit action.</p>
           <div className="mt-6 space-y-3">
-            <button onClick={onRegenerate} style={{ backgroundColor: colors.primary }} className="w-full text-white px-6 py-3.5 rounded-xl font-bold hover:opacity-90 transition-opacity">Generate New Code</button>
-            <button onClick={onSaveCoupon} className="w-full text-white px-6 py-3.5 rounded-xl font-bold hover:opacity-90 transition-opacity" style={{ backgroundColor: colors.green }}>
+            <button onClick={onRegenerate} style={{ backgroundColor: colors.primary }} className="w-full rounded-2xl px-6 py-4 text-base font-bold text-white transition-opacity hover:opacity-90">Generate New Code</button>
+            <button onClick={onSaveCoupon} className="safe-bottom w-full rounded-2xl px-6 py-4 text-base font-bold text-white transition-opacity hover:opacity-90" style={{ backgroundColor: colors.green }}>
               Save Coupon
             </button>
             {couponStatus && (
@@ -74,7 +74,7 @@ export function VisitSummary({
                 {couponStatus.message}
               </div>
             )}
-            <button onClick={onReset} className="w-full bg-gray-100 text-gray-600 px-6 py-3.5 rounded-xl font-bold hover:bg-gray-200 transition-colors">Back To Home</button>
+            <button onClick={onReset} className="w-full rounded-2xl bg-gray-100 px-6 py-4 text-base font-bold text-gray-600 transition-colors hover:bg-gray-200">Back To Home</button>
           </div>
           {couponHistory?.length > 0 && (
             <div className="mt-6 border-t border-black/5 pt-5">
