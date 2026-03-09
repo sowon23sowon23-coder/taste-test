@@ -215,12 +215,12 @@ function App() {
   if (stage === 'home') {
     return (
       <div
-        className="min-h-screen px-4 py-4 md:px-6 md:py-8"
+        className="min-h-screen px-4 py-10 md:px-6 md:py-14"
         style={{
           background: `radial-gradient(circle at top left, ${YL.primaryLight} 0%, ${YL.bg} 45%, ${YL.paper} 100%)`
         }}
       >
-        <div className="mx-auto max-w-xl">
+        <div className="mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-[380px] items-center">
           <StorePickerPanel
             colors={YL}
             homeStoreQuery={homeStoreQuery}
