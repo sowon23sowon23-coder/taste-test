@@ -1,41 +1,157 @@
 import React, { useMemo, useState } from 'react';
+import { FlowOverview } from './components/FlowOverview';
+import { StorePickerPanel } from './components/StorePickerPanel';
 import { questions } from './data/questions';
 import { flavorCategories, flavors, toppings } from './data/flavors';
+import { stores } from './data/stores';
+import geocodedStores from './data/stores.json';
 
 const YL = {
   primary: '#960853',
   primaryLight: '#fff0f5',
   green: '#8dc63f',
+  greenDark: '#72a234',
   greenLight: '#f2f9e8',
   bg: '#fff5f8',
   paper: '#fffdf8',
   ink: '#2f2330'
 };
 
-const INITIAL_STATE = {
-  stage: 'home',
-  currentQuestion: 0,
-  answerHistory: [],
-  recommendation: null
+const FLOW_STEPS = [
+  { id: 'pick', title: 'Pick', description: 'Choose your store or find the nearest one.' },
+  { id: 'play', title: 'Play', description: 'Answer the flavor test questions.' },
+  { id: 'result', title: 'Result', description: 'Get your flavor and topping match.' }
+];
+
+const CITY_ALIAS_MAP = {
+  'los angeles': ['USC GATEWAY', 'MIRACLE MILE', 'CULVER CITY'],
+  'rancho cucamonga': ['RIO RANCHO', 'RANCHO MISSION VIEJO'],
+  redlands: ['RIVERSIDE', 'CHINO HILLS'],
+  'redondo beach': ['MANHATTAN BEACH'],
+  'san diego': ['SDSU', 'MIRA MESA'],
+  'seal beach': ['CERRITOS'],
+  stockton: ['PLEASANT HILL'],
+  torrance: ['MANHATTAN BEACH'],
+  arvada: ['CO104', 'CO103', 'CO102', 'CO101'],
+  denver: ['CO104', 'CO103', 'CO102', 'CO101'],
+  littleton: ['CO104', 'CO103', 'CO102', 'CO101'],
+  cypress: ['WESTCHASE', 'MEMORIAL CITY'],
+  'fort worth': ['FT. WORTH'],
+  houston: ['WESTCHASE', 'MEMORIAL CITY'],
+  'st. george': ['RED ROCK COMMONS', 'OREM'],
+  'west jordan': ['JORDAN LANDING']
 };
 
 function App() {
-  const [{ stage, currentQuestion, answerHistory, recommendation }, setState] = useState(INITIAL_STATE);
+  const [stage, setStage] = useState('home');
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [selectedStore, setSelectedStore] = useState(null);
+  const [homeStoreQuery, setHomeStoreQuery] = useState('');
+  const [isHomeStoreOpen, setIsHomeStoreOpen] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
+  const [answerHistory, setAnswerHistory] = useState([]);
+  const [recommendation, setRecommendation] = useState(null);
 
-  const progress = useMemo(
-    () => ((currentQuestion + 1) / questions.length) * 100,
-    [currentQuestion]
+  const getStoreKey = (store) => store.id ?? store.name;
+  const selectedStoreData = selectedStore ? stores.find((store) => getStoreKey(store) === selectedStore) : null;
+  const filteredHomeStores = useMemo(
+    () =>
+      stores
+        .filter((store) => (store.name || '').toLowerCase().includes(homeStoreQuery.trim().toLowerCase()))
+        .slice(0, 8),
+    [homeStoreQuery]
   );
+  const availableFlavors = selectedStoreData?.flavors || [];
+  const availableToppings = selectedStoreData?.toppings || [];
+  const progress = ((currentQuestion + 1) / questions.length) * 100;
 
-  const resetToHome = () => setState(INITIAL_STATE);
+  const getDistance = (lat1, lon1, lat2, lon2) => {
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) ** 2;
+    return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  };
 
-  const startTest = () => {
-    setState({
-      stage: 'play',
-      currentQuestion: 0,
-      answerHistory: [],
-      recommendation: null
-    });
+  const mapGeoStoreToAppStore = (geoStore) => {
+    if (!geoStore?.name) return null;
+
+    const geoCity = geoStore.name.split(',')[0].trim().toLowerCase();
+    const directMatch = stores.find((store) => (store.name || '').toLowerCase().includes(geoCity));
+    if (directMatch) return directMatch;
+
+    const aliases = CITY_ALIAS_MAP[geoCity] || [];
+    return (
+      stores.find(
+        (store) =>
+          aliases.some(
+            (alias) =>
+              (store.id || '').toUpperCase() === alias ||
+              (store.name || '').toUpperCase().includes(alias)
+          )
+      ) || null
+    );
+  };
+
+  const handleFindNearest = () => {
+    if (isLocating) return;
+    if (!navigator.geolocation) {
+      alert('Geolocation is not supported in this browser.');
+      return;
+    }
+
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        const candidates = geocodedStores.filter(
+          (store) => Number.isFinite(store.lat) && Number.isFinite(store.lon)
+        );
+
+        let nearest = null;
+        let minDistance = Infinity;
+
+        candidates.forEach((store) => {
+          const distance = getDistance(coords.latitude, coords.longitude, store.lat, store.lon);
+          if (distance < minDistance) {
+            minDistance = distance;
+            nearest = store;
+          }
+        });
+
+        const appStore = mapGeoStoreToAppStore(nearest);
+        setIsLocating(false);
+
+        if (!appStore) {
+          alert('No nearby stores found.');
+          return;
+        }
+
+        setSelectedStore(getStoreKey(appStore));
+        setHomeStoreQuery(appStore.name || '');
+        setIsHomeStoreOpen(false);
+      },
+      () => {
+        setIsLocating(false);
+        alert('Unable to retrieve your location.');
+      }
+    );
+  };
+
+  const resetFlow = () => {
+    setStage('home');
+    setCurrentQuestion(0);
+    setAnswerHistory([]);
+    setRecommendation(null);
+  };
+
+  const resetTest = () => {
+    setStage('play');
+    setCurrentQuestion(0);
+    setAnswerHistory([]);
+    setRecommendation(null);
   };
 
   const recomputeScores = (history) => {
@@ -43,243 +159,276 @@ function App() {
 
     history.forEach((optionIndex, questionIndex) => {
       const option = questions[questionIndex].options[optionIndex];
-
       option.flavors.forEach((flavor) => {
         nextScores.flavors[flavor] = (nextScores.flavors[flavor] || 0) + 1;
       });
-
       option.toppings.forEach((topping) => {
         nextScores.toppings[topping] = (nextScores.toppings[topping] || 0) + 1;
       });
-
-      nextScores.personalities[option.personality] = (nextScores.personalities[option.personality] || 0) + 1;
+      nextScores.personalities[option.personality] =
+        (nextScores.personalities[option.personality] || 0) + 1;
     });
 
     return nextScores;
   };
 
   const handleAnswer = (optionIndex) => {
+    const option = questions[currentQuestion].options[optionIndex];
     const newHistory = [...answerHistory, optionIndex];
+    const nextScores = recomputeScores(newHistory);
+    setAnswerHistory(newHistory);
 
     if (currentQuestion < questions.length - 1) {
-      setState((current) => ({
-        ...current,
-        answerHistory: newHistory,
-        currentQuestion: current.currentQuestion + 1
-      }));
+      setCurrentQuestion(currentQuestion + 1);
       return;
     }
 
-    const scores = recomputeScores(newHistory);
-    const matchedFlavor =
-      Object.entries(scores.flavors)
-        .sort((left, right) => right[1] - left[1])
-        .map(([flavor]) => flavor)[0] || 'Vanilla';
-    const matchedToppings = Object.entries(scores.toppings)
-      .sort((left, right) => right[1] - left[1])
-      .slice(0, 2)
-      .map(([topping]) => topping);
-    const matchedPersonality =
-      Object.entries(scores.personalities)
-        .sort((left, right) => right[1] - left[1])
-        .map(([personality]) => personality)[0] || 'Flavor Match';
+    const flavor =
+      Object.keys(nextScores.flavors)
+        .filter((item) => availableFlavors.includes(item))
+        .sort((left, right) => nextScores.flavors[right] - nextScores.flavors[left])[0] ||
+      availableFlavors[0] ||
+      'Vanilla';
+    const pickedToppings = Object.keys(nextScores.toppings)
+      .filter((item) => availableToppings.includes(item))
+      .sort((left, right) => nextScores.toppings[right] - nextScores.toppings[left])
+      .slice(0, 2);
+    const personality =
+      Object.keys(nextScores.personalities).sort(
+        (left, right) => nextScores.personalities[right] - nextScores.personalities[left]
+      )[0] || option.personality;
 
-    setState({
-      stage: 'result',
-      currentQuestion,
-      answerHistory: newHistory,
-      recommendation: {
-        flavor: matchedFlavor,
-        toppings: matchedToppings,
-        personality: matchedPersonality,
-        description: flavors[matchedFlavor]?.description || 'A Yogurtland combo shaped by your answers.'
-      }
+    setRecommendation({
+      flavor,
+      toppings: pickedToppings,
+      personality,
+      description: flavors[flavor]?.description || 'A Yogurtland combo shaped by your answers.'
     });
+    setStage('result');
   };
 
   const handlePrevious = () => {
-    if (currentQuestion === 0) {
-      return;
-    }
-
-    setState((current) => ({
-      ...current,
-      currentQuestion: current.currentQuestion - 1,
-      answerHistory: current.answerHistory.slice(0, -1)
-    }));
+    if (currentQuestion === 0) return;
+    setAnswerHistory((current) => current.slice(0, -1));
+    setCurrentQuestion((current) => current - 1);
   };
 
   if (stage === 'home') {
     return (
       <div
-        className="min-h-screen px-4 py-6 md:px-6 md:py-10"
-        style={{ background: `radial-gradient(circle at top left, ${YL.primaryLight} 0%, ${YL.bg} 45%, ${YL.paper} 100%)` }}
+        className="min-h-screen px-4 py-4 md:px-6 md:py-8"
+        style={{
+          background: `radial-gradient(circle at top left, ${YL.primaryLight} 0%, ${YL.bg} 45%, ${YL.paper} 100%)`
+        }}
       >
-        <div className="mx-auto max-w-4xl overflow-hidden rounded-[32px] bg-white shadow-xl">
-          <div className="grid gap-0 md:grid-cols-[1.1fr_0.9fr]">
-            <section className="p-8 md:p-12">
-              <div className="text-xs font-black uppercase tracking-[0.28em]" style={{ color: YL.primary }}>
-                Yogurtland
-              </div>
-              <h1 className="mt-4 text-4xl font-black leading-tight md:text-5xl" style={{ color: YL.ink }}>
-                Taste Test
-              </h1>
-              <p className="mt-4 max-w-xl text-base leading-7 text-gray-600">
-                Answer a few quick questions and get a flavor and topping match based on your taste.
-              </p>
-              <button
-                type="button"
-                onClick={startTest}
-                className="mt-8 rounded-2xl px-6 py-4 text-base font-bold text-white transition-opacity hover:opacity-90"
-                style={{ backgroundColor: YL.primary }}
-              >
-                Start Taste Test
-              </button>
-            </section>
-            <aside className="flex items-center justify-center p-8 md:p-12" style={{ backgroundColor: YL.primaryLight }}>
-              <div className="w-full max-w-sm rounded-[28px] bg-white p-6 shadow-md">
-                <div className="text-sm font-bold" style={{ color: YL.primary }}>
-                  What stays
-                </div>
-                <ul className="mt-4 space-y-3 text-sm leading-6 text-gray-600">
-                  <li>Flavor quiz only</li>
-                  <li>Question-by-question flow</li>
-                  <li>Final flavor and topping recommendation</li>
-                </ul>
-              </div>
-            </aside>
-          </div>
+        <div className="mx-auto grid max-w-6xl gap-4 lg:grid-cols-[1.15fr_0.85fr] lg:gap-6">
+          <FlowOverview colors={YL} steps={FLOW_STEPS} />
+          <StorePickerPanel
+            colors={YL}
+            homeStoreQuery={homeStoreQuery}
+            isHomeStoreOpen={isHomeStoreOpen}
+            filteredHomeStores={filteredHomeStores}
+            isLocating={isLocating}
+            onStoreQueryChange={(event) => {
+              setHomeStoreQuery(event.target.value);
+              setIsHomeStoreOpen(true);
+              setSelectedStore(null);
+            }}
+            onStoreQueryFocus={() => setIsHomeStoreOpen(true)}
+            onStoreQueryBlur={() => setTimeout(() => setIsHomeStoreOpen(false), 120)}
+            onStoreSelect={(store) => {
+              setSelectedStore(getStoreKey(store));
+              setHomeStoreQuery(store.name || '');
+              setIsHomeStoreOpen(false);
+            }}
+            onStoreEnter={(event) => {
+              if (event.key === 'Enter' && filteredHomeStores.length > 0) {
+                const first = filteredHomeStores[0];
+                setSelectedStore(getStoreKey(first));
+                setHomeStoreQuery(first.name || '');
+                setIsHomeStoreOpen(false);
+              }
+            }}
+            onFindNearest={handleFindNearest}
+            onStart={() => {
+              if (!selectedStore) {
+                alert('Choose a store first.');
+                return;
+              }
+              setStage('play');
+            }}
+          />
         </div>
       </div>
     );
   }
 
   if (stage === 'play') {
-    const question = questions[currentQuestion];
-
     return (
-      <div className="min-h-screen px-4 py-6 md:px-6 md:py-10" style={{ backgroundColor: YL.bg }}>
-        <div className="mx-auto max-w-4xl overflow-hidden rounded-[32px] bg-white shadow-xl">
-          <div className="border-b border-black/5 px-6 py-6 md:px-8" style={{ backgroundColor: YL.primary }}>
-            <div className="text-xs font-black uppercase tracking-[0.28em] text-white/70">Taste Test</div>
-            <div className="mt-2 text-2xl font-black text-white md:text-3xl">Find your flavor match</div>
-          </div>
-          <div className="p-6 md:p-8">
-            <div className="mb-6">
-              <div className="mb-2 flex justify-between text-xs font-semibold text-gray-400">
-                <span>
-                  Question {currentQuestion + 1} / {questions.length}
-                </span>
-                <span>{Math.round(progress)}%</span>
-              </div>
-              <div className="h-2 overflow-hidden rounded-full bg-gray-100">
-                <div
-                  className="h-full rounded-full transition-all duration-300"
-                  style={{ width: `${progress}%`, backgroundColor: YL.primary }}
-                />
+      <div style={{ backgroundColor: YL.bg }} className="min-h-screen px-4 py-4 md:py-8">
+        <div className="mx-auto grid max-w-5xl gap-4 lg:grid-cols-[0.75fr_1.25fr] lg:gap-6">
+          <aside className="overflow-hidden rounded-[28px] bg-white shadow-xl md:rounded-[32px]">
+            <div className="px-5 py-6 md:px-7 md:py-7" style={{ backgroundColor: YL.primary }}>
+              <div className="text-xs font-bold uppercase tracking-widest text-white/60">Yogurtland</div>
+              <div className="mt-2 text-2xl font-extrabold leading-tight text-white md:text-3xl">
+                Play the Flavor Test
               </div>
             </div>
-
-            <div className="rounded-[28px] p-6 text-center md:p-8" style={{ backgroundColor: YL.primaryLight }}>
-              <p className="text-2xl font-black leading-tight text-gray-800">{question.text}</p>
+            <div className="space-y-4 p-5 md:space-y-5 md:p-7">
+              <div className="rounded-2xl p-4" style={{ backgroundColor: YL.primaryLight }}>
+                <div className="text-xs font-black uppercase tracking-[0.24em]" style={{ color: YL.primary }}>
+                  Current Store
+                </div>
+                <div className="mt-2 text-lg font-extrabold text-gray-800">
+                  {selectedStoreData?.name}
+                </div>
+              </div>
+              <div className="space-y-3">
+                {FLOW_STEPS.map((step, index) => (
+                  <div key={step.id} className="flex gap-3">
+                    <div
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-black text-white"
+                      style={{ backgroundColor: step.id === 'play' ? YL.primary : '#d1d5db' }}
+                    >
+                      {index + 1}
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-gray-800">{step.title}</div>
+                      <div className="text-sm leading-6 text-gray-500">{step.description}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-
-            <div className="mt-6 grid gap-3 md:grid-cols-2">
-              {question.options.map((option, index) => (
+          </aside>
+          <section className="overflow-hidden rounded-[28px] bg-white shadow-xl md:rounded-[32px]">
+            <div style={{ backgroundColor: YL.primary }} className="px-5 py-4 md:px-8 md:py-5">
+              <div className="text-xs font-bold uppercase tracking-widest text-white/60">
+                Question Flow
+              </div>
+              <div className="text-lg font-extrabold text-white">Flavor Test</div>
+            </div>
+            <div className="p-5 md:p-8">
+              <div className="mb-6">
+                <div className="mb-2 flex justify-between text-xs font-semibold text-gray-400">
+                  <span>
+                    Question {currentQuestion + 1} / {questions.length}
+                  </span>
+                  <span>{Math.round(progress)}%</span>
+                </div>
+                <div className="h-2 overflow-hidden rounded-full bg-gray-100">
+                  <div
+                    className="h-full rounded-full transition-all duration-500 ease-out"
+                    style={{ width: `${progress}%`, backgroundColor: YL.primary }}
+                  />
+                </div>
+              </div>
+              <div
+                className="mb-6 rounded-[24px] p-5 text-center md:rounded-3xl md:p-6"
+                style={{ backgroundColor: YL.primaryLight }}
+              >
+                <p className="text-xl font-black text-gray-800 md:text-2xl">
+                  {questions[currentQuestion].text}
+                </p>
+              </div>
+              <div className="mb-6 grid grid-cols-1 gap-3 md:grid-cols-2">
+                {questions[currentQuestion].options.map((option, index) => (
+                  <button
+                    key={`${questions[currentQuestion].id}-${option.label}`}
+                    onClick={() => handleAnswer(index)}
+                    style={{ backgroundColor: YL.primary }}
+                    className="min-h-[112px] rounded-[24px] px-5 py-5 text-left text-white shadow-md transition-all duration-150 hover:opacity-90 active:scale-95 md:rounded-3xl md:px-6"
+                  >
+                    <div className="mb-1 text-lg font-extrabold leading-tight">{option.label}</div>
+                    <div className="text-sm leading-6 text-white/80">{option.description}</div>
+                  </button>
+                ))}
+              </div>
+              <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
                 <button
-                  key={`${question.id}-${option.label}`}
-                  type="button"
-                  onClick={() => handleAnswer(index)}
-                  className="rounded-[28px] px-5 py-5 text-left text-white shadow-md transition-all hover:opacity-90 active:scale-[0.99]"
-                  style={{ backgroundColor: YL.primary }}
+                  onClick={resetTest}
+                  className="rounded-2xl bg-gray-100 px-4 py-3 text-sm font-semibold text-gray-500 transition-colors hover:bg-gray-200"
                 >
-                  <div className="text-lg font-extrabold">{option.label}</div>
-                  <div className="mt-1 text-sm leading-6 text-white/80">{option.description}</div>
+                  Start Over
                 </button>
-              ))}
+                <button
+                  onClick={handlePrevious}
+                  disabled={currentQuestion === 0}
+                  className="rounded-2xl bg-gray-100 px-4 py-3 text-sm font-semibold text-gray-500 transition-colors hover:bg-gray-200 disabled:opacity-40"
+                >
+                  Previous
+                </button>
+              </div>
             </div>
-
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
-              <button
-                type="button"
-                onClick={resetToHome}
-                className="rounded-2xl bg-gray-100 px-5 py-3 text-sm font-bold text-gray-600 transition-colors hover:bg-gray-200"
-              >
-                Home
-              </button>
-              <button
-                type="button"
-                onClick={handlePrevious}
-                disabled={currentQuestion === 0}
-                className="rounded-2xl bg-gray-100 px-5 py-3 text-sm font-bold text-gray-600 transition-colors hover:bg-gray-200 disabled:opacity-40"
-              >
-                Previous
-              </button>
-            </div>
-          </div>
+          </section>
         </div>
       </div>
     );
   }
 
-  const flavorData = flavors[recommendation?.flavor] || flavors.Vanilla;
+  const flavorData = flavors[recommendation?.flavor] || { category: 'classic', description: 'A Yogurtland favorite.' };
   const flavorCategory = flavorCategories[flavorData.category] || flavorCategories.classic;
 
   return (
-    <div className="min-h-screen px-4 py-6 md:px-6 md:py-10" style={{ backgroundColor: YL.bg }}>
-      <div className="mx-auto max-w-4xl overflow-hidden rounded-[32px] bg-white shadow-xl">
-        <div className="px-6 py-8 md:px-8" style={{ background: `linear-gradient(135deg, ${YL.primaryLight} 0%, #ffffff 100%)` }}>
-          <div className="text-xs font-black uppercase tracking-[0.28em]" style={{ color: YL.primary }}>
-            Your Result
+    <div style={{ backgroundColor: YL.bg }} className="min-h-screen px-4 py-4 md:py-8">
+      <div className="mx-auto grid max-w-5xl gap-4 lg:grid-cols-[0.95fr_1.05fr] lg:gap-6">
+        <section className="overflow-hidden rounded-[28px] bg-white shadow-xl md:rounded-[32px]">
+          <div
+            className="px-5 pb-5 pt-6 md:px-8 md:pb-6 md:pt-8"
+            style={{ background: `linear-gradient(135deg, ${YL.primaryLight} 0%, #ffffff 100%)` }}
+          >
+            <img src="/yogurtland-logo.png" alt="Yogurtland" className="mb-4 h-10 object-contain" />
+            <div className="text-xs font-black uppercase tracking-[0.28em]" style={{ color: YL.primary }}>
+              Flavor Personality
+            </div>
+            <h1 className="mt-3 text-3xl font-black leading-tight md:text-4xl" style={{ color: YL.ink }}>
+              {recommendation?.personality}
+            </h1>
+            <p className="mt-3 text-sm leading-6 text-gray-600">{selectedStoreData?.name}</p>
           </div>
-          <h1 className="mt-3 text-3xl font-black leading-tight md:text-4xl" style={{ color: YL.ink }}>
-            {recommendation?.personality}
-          </h1>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-gray-600">{recommendation?.description}</p>
-        </div>
-
-        <div className="grid gap-4 p-6 md:grid-cols-2 md:p-8">
-          <section className="rounded-[28px] p-6" style={{ backgroundColor: YL.primaryLight }}>
-            <div className="text-xs font-black uppercase tracking-[0.24em]" style={{ color: YL.primary }}>
-              Flavor
-            </div>
-            <div className="mt-4 text-5xl">{flavorCategory.icon}</div>
-            <div className="mt-4 text-2xl font-extrabold text-gray-800">{recommendation?.flavor}</div>
-            <div className="mt-2 text-sm leading-6 text-gray-600">{flavorData.description}</div>
-          </section>
-
-          <section className="rounded-[28px] p-6" style={{ backgroundColor: YL.greenLight }}>
-            <div className="text-xs font-black uppercase tracking-[0.24em]" style={{ color: YL.green }}>
-              Toppings
-            </div>
-            <div className="mt-4 space-y-3">
-              {(recommendation?.toppings || []).map((topping) => (
-                <div key={topping} className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3">
-                  <span className="text-3xl">{toppings[topping]?.icon || '🍬'}</span>
-                  <span className="text-lg font-bold text-gray-800">{topping}</span>
+          <div className="space-y-4 p-5 md:space-y-5 md:p-8">
+            <div className="rounded-[24px] p-5 md:rounded-3xl" style={{ backgroundColor: YL.primaryLight }}>
+              <div className="mb-2 text-xs font-bold uppercase tracking-widest" style={{ color: YL.primary }}>
+                Recommended Flavor
+              </div>
+              <div className="flex items-center gap-4">
+                <span className="text-5xl">{flavorCategory.icon}</span>
+                <div>
+                  <div className="text-2xl font-extrabold text-gray-800">{recommendation?.flavor}</div>
+                  <div className="mt-0.5 text-sm text-gray-500">{flavorData.description}</div>
                 </div>
-              ))}
+              </div>
             </div>
-          </section>
-        </div>
-
-        <div className="flex flex-col gap-3 px-6 pb-8 md:flex-row md:justify-center md:px-8">
-          <button
-            type="button"
-            onClick={startTest}
-            className="rounded-2xl px-6 py-4 text-base font-bold text-white transition-opacity hover:opacity-90"
-            style={{ backgroundColor: YL.primary }}
-          >
-            Retake Test
-          </button>
-          <button
-            type="button"
-            onClick={resetToHome}
-            className="rounded-2xl bg-gray-100 px-6 py-4 text-base font-bold text-gray-600 transition-colors hover:bg-gray-200"
-          >
-            Back Home
-          </button>
-        </div>
+            <div className="rounded-[24px] p-5 md:rounded-3xl" style={{ backgroundColor: YL.greenLight }}>
+              <div className="mb-3 text-xs font-bold uppercase tracking-widest" style={{ color: YL.green }}>
+                Recommended Toppings
+              </div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {(recommendation?.toppings || []).map((toppingName) => (
+                  <div key={toppingName} className="flex items-center gap-3 rounded-2xl bg-white p-4">
+                    <span className="text-3xl">{toppings[toppingName]?.icon || '🍬'}</span>
+                    <div className="text-lg font-extrabold text-gray-800">{toppingName}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <button
+                onClick={resetTest}
+                style={{ backgroundColor: YL.primary }}
+                className="flex-1 rounded-2xl px-6 py-4 text-base font-bold text-white transition-opacity hover:opacity-90"
+              >
+                Retake Test
+              </button>
+              <button
+                onClick={resetFlow}
+                className="flex-1 rounded-2xl bg-gray-100 px-6 py-4 text-base font-bold text-gray-600 transition-colors hover:bg-gray-200"
+              >
+                Back Home
+              </button>
+            </div>
+          </div>
+        </section>
       </div>
     </div>
   );
