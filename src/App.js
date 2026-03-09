@@ -16,12 +16,6 @@ const YL = {
   ink: '#2f2330'
 };
 
-const FLOW_STEPS = [
-  { id: 'pick', title: 'Pick', description: 'Choose your store or find the nearest one.' },
-  { id: 'play', title: 'Play', description: 'Answer the flavor test questions.' },
-  { id: 'result', title: 'Result', description: 'Get your flavor and topping match.' }
-];
-
 const CITY_ALIAS_MAP = {
   'los angeles': ['USC GATEWAY', 'MIRACLE MILE', 'CULVER CITY'],
   'rancho cucamonga': ['RIO RANCHO', 'RANCHO MISSION VIEJO'],
@@ -267,41 +261,7 @@ function App() {
   if (stage === 'play') {
     return (
       <div style={{ backgroundColor: YL.bg }} className="min-h-screen px-4 py-4 md:py-8">
-        <div className="mx-auto grid max-w-5xl gap-4 lg:grid-cols-[0.75fr_1.25fr] lg:gap-6">
-          <aside className="overflow-hidden rounded-[28px] bg-white shadow-xl md:rounded-[32px]">
-            <div className="px-5 py-6 md:px-7 md:py-7" style={{ backgroundColor: YL.primary }}>
-              <div className="text-xs font-bold uppercase tracking-widest text-white/60">Yogurtland</div>
-              <div className="mt-2 text-2xl font-extrabold leading-tight text-white md:text-3xl">
-                Play the Flavor Test
-              </div>
-            </div>
-            <div className="space-y-4 p-5 md:space-y-5 md:p-7">
-              <div className="rounded-2xl p-4" style={{ backgroundColor: YL.primaryLight }}>
-                <div className="text-xs font-black uppercase tracking-[0.24em]" style={{ color: YL.primary }}>
-                  Current Store
-                </div>
-                <div className="mt-2 text-lg font-extrabold text-gray-800">
-                  {selectedStoreData?.name}
-                </div>
-              </div>
-              <div className="space-y-3">
-                {FLOW_STEPS.map((step, index) => (
-                  <div key={step.id} className="flex gap-3">
-                    <div
-                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-black text-white"
-                      style={{ backgroundColor: step.id === 'play' ? YL.primary : '#d1d5db' }}
-                    >
-                      {index + 1}
-                    </div>
-                    <div>
-                      <div className="text-sm font-bold text-gray-800">{step.title}</div>
-                      <div className="text-sm leading-6 text-gray-500">{step.description}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </aside>
+        <div className="mx-auto max-w-4xl">
           <section className="overflow-hidden rounded-[28px] bg-white shadow-xl md:rounded-[32px]">
             <div style={{ backgroundColor: YL.primary }} className="px-5 py-4 md:px-8 md:py-5">
               <div className="text-xs font-bold uppercase tracking-widest text-white/60">
