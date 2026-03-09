@@ -1,5 +1,4 @@
 import React, { useMemo, useState } from 'react';
-import { FlowOverview } from './components/FlowOverview';
 import { StorePickerPanel } from './components/StorePickerPanel';
 import { questions } from './data/questions';
 import { flavorCategories, flavors, toppings } from './data/flavors';
@@ -221,8 +220,7 @@ function App() {
           background: `radial-gradient(circle at top left, ${YL.primaryLight} 0%, ${YL.bg} 45%, ${YL.paper} 100%)`
         }}
       >
-        <div className="mx-auto grid max-w-6xl gap-4 lg:grid-cols-[1.15fr_0.85fr] lg:gap-6">
-          <FlowOverview colors={YL} steps={FLOW_STEPS} />
+        <div className="mx-auto max-w-xl">
           <StorePickerPanel
             colors={YL}
             homeStoreQuery={homeStoreQuery}
