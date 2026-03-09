@@ -1,27 +1,22 @@
 export const flavorCategories = {
   tart: {
     name: 'Tart',
-    color: 'from-yellow-400 to-orange-400',
     icon: '🍋'
   },
   classic: {
     name: 'Classic',
-    color: 'from-amber-300 to-yellow-500',
     icon: '🍦'
   },
   chocolate: {
     name: 'Chocolate',
-    color: 'from-stone-700 to-stone-900',
     icon: '🍫'
   },
   fruity: {
     name: 'Fruity',
-    color: 'from-pink-400 to-rose-500',
     icon: '🍓'
   },
   specialty: {
     name: 'Specialty',
-    color: 'from-fuchsia-500 to-indigo-500',
     icon: '✨'
   }
 };
@@ -93,7 +88,7 @@ export const toppings = {
   'Chocolate Chips': { category: 'chocolate', icon: '🍫' },
   Oreo: { category: 'chocolate', icon: '🍪' },
   'Brownie Bites': { category: 'chocolate', icon: '🧁' },
-  'Fresh Fruit': { category: 'fruit', icon: '🍍' },
+  'Fresh Fruit': { category: 'fruit', icon: '🍓' },
   Jelly: { category: 'fruit', icon: '🫐' },
   Strawberries: { category: 'fruit', icon: '🍓' },
   Mango: { category: 'fruit', icon: '🥭' },
@@ -101,6 +96,6 @@ export const toppings = {
   'M&Ms': { category: 'candy', icon: '🍬' },
   'Gummy Bears': { category: 'candy', icon: '🧸' },
   Caramel: { category: 'sauce', icon: '🍯' },
-  'Whipped Cream': { category: 'sauce', icon: '☁️' },
+  'Whipped Cream': { category: 'sauce', icon: '🍦' },
   'Hot Fudge': { category: 'sauce', icon: '🍫' }
 };
