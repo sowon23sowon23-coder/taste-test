@@ -64,6 +64,16 @@ function App() {
   const availableToppings = selectedStoreData?.toppings || [];
   const progress = ((currentQuestion + 1) / questions.length) * 100;
 
+  const beginTestWithStore = (store) => {
+    setSelectedStore(getStoreKey(store));
+    setHomeStoreQuery(store.name || '');
+    setIsHomeStoreOpen(false);
+    setCurrentQuestion(0);
+    setAnswerHistory([]);
+    setRecommendation(null);
+    setStage('play');
+  };
+
   const getDistance = (lat1, lon1, lat2, lon2) => {
     const dLat = ((lat2 - lat1) * Math.PI) / 180;
     const dLon = ((lon2 - lon1) * Math.PI) / 180;
@@ -128,9 +138,7 @@ function App() {
           return;
         }
 
-        setSelectedStore(getStoreKey(appStore));
-        setHomeStoreQuery(appStore.name || '');
-        setIsHomeStoreOpen(false);
+        beginTestWithStore(appStore);
       },
       () => {
         setIsLocating(false);
@@ -235,16 +243,11 @@ function App() {
             onStoreQueryFocus={() => setIsHomeStoreOpen(true)}
             onStoreQueryBlur={() => setTimeout(() => setIsHomeStoreOpen(false), 120)}
             onStoreSelect={(store) => {
-              setSelectedStore(getStoreKey(store));
-              setHomeStoreQuery(store.name || '');
-              setIsHomeStoreOpen(false);
+              beginTestWithStore(store);
             }}
             onStoreEnter={(event) => {
               if (event.key === 'Enter' && filteredHomeStores.length > 0) {
-                const first = filteredHomeStores[0];
-                setSelectedStore(getStoreKey(first));
-                setHomeStoreQuery(first.name || '');
-                setIsHomeStoreOpen(false);
+                beginTestWithStore(filteredHomeStores[0]);
               }
             }}
             onFindNearest={handleFindNearest}
