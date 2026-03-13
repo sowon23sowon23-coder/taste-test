@@ -54,16 +54,21 @@ export function StorePickerPanel({
           {isHomeStoreOpen && (
             <div className="absolute z-20 mt-2 w-full overflow-hidden rounded-[16px] border border-[#d7d5d8] bg-white shadow-lg">
               {filteredHomeStores.length > 0 ? (
-                filteredHomeStores.map((store) => (
-                  <button
-                    key={store.id || store.name}
-                    type="button"
-                    onClick={() => onStoreSelect(store)}
-                    className="w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    {store.name}
-                  </button>
-                ))
+                <div
+                  className="max-h-64 overflow-y-auto overscroll-contain"
+                  style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}
+                >
+                  {filteredHomeStores.map((store) => (
+                    <button
+                      key={store.id || store.name}
+                      type="button"
+                      onClick={() => onStoreSelect(store)}
+                      className="w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      {store.name}
+                    </button>
+                  ))}
+                </div>
               ) : (
                 <div className="px-4 py-3 text-sm text-gray-500">No stores match your search.</div>
               )}
