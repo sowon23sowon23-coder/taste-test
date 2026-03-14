@@ -50,8 +50,7 @@ function App() {
   const filteredHomeStores = useMemo(
     () =>
       stores
-        .filter((store) => (store.name || '').toLowerCase().includes(homeStoreQuery.trim().toLowerCase()))
-        .slice(0, 8),
+        .filter((store) => (store.name || '').toLowerCase().includes(homeStoreQuery.trim().toLowerCase())),
     [homeStoreQuery]
   );
   const availableFlavors = selectedStoreData?.flavors || [];
