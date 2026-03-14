@@ -263,6 +263,11 @@ function App() {
         <div className="mx-auto max-w-4xl">
           <section className="overflow-hidden rounded-[28px] bg-white shadow-xl md:rounded-[32px]">
             <div style={{ backgroundColor: YL.primary }} className="px-5 py-4 md:px-8 md:py-5">
+              {selectedStoreData?.name ? (
+                <div className="mb-2 text-xs font-semibold text-white/80">
+                  Store: {selectedStoreData.name}
+                </div>
+              ) : null}
               <div className="text-xs font-bold uppercase tracking-widest text-white/60">
                 Question Flow
               </div>
