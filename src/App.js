@@ -263,15 +263,19 @@ function App() {
         <div className="mx-auto max-w-4xl">
           <section className="overflow-hidden rounded-[28px] bg-white shadow-xl md:rounded-[32px]">
             <div style={{ backgroundColor: YL.primary }} className="px-5 py-4 md:px-8 md:py-5">
-              {selectedStoreData?.name ? (
-                <div className="mb-2 text-xs font-semibold text-white/80">
-                  Store: {selectedStoreData.name}
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="text-xs font-bold uppercase tracking-widest text-white/60">
+                    Question Flow
+                  </div>
+                  <div className="text-lg font-extrabold text-white">Flavor Test</div>
                 </div>
-              ) : null}
-              <div className="text-xs font-bold uppercase tracking-widest text-white/60">
-                Question Flow
+                {selectedStoreData?.name ? (
+                  <div className="rounded-full bg-white/16 px-3 py-1.5 text-right text-[0.7rem] font-semibold text-white ring-1 ring-white/20 backdrop-blur-sm md:text-xs">
+                    {selectedStoreData.name}
+                  </div>
+                ) : null}
               </div>
-              <div className="text-lg font-extrabold text-white">Flavor Test</div>
             </div>
             <div className="p-5 md:p-8">
               <div className="mb-6">
