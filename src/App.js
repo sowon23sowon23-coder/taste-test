@@ -37,14 +37,18 @@ const CITY_ALIAS_MAP = {
 };
 
 function App() {
-  const [stage, setStage] = useState('home');
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [selectedStore, setSelectedStore] = useState(null);
-  const [homeStoreQuery, setHomeStoreQuery] = useState('');
+  const savedSession = (() => {
+    try { return JSON.parse(sessionStorage.getItem('yl_session') || 'null'); } catch { return null; }
+  })();
+
+  const [stage, setStage] = useState(savedSession?.stage || 'home');
+  const [currentQuestion, setCurrentQuestion] = useState(savedSession?.currentQuestion || 0);
+  const [selectedStore, setSelectedStore] = useState(savedSession?.selectedStore || null);
+  const [homeStoreQuery, setHomeStoreQuery] = useState(savedSession?.homeStoreQuery || '');
   const [isHomeStoreOpen, setIsHomeStoreOpen] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
-  const [answerHistory, setAnswerHistory] = useState([]);
-  const [recommendation, setRecommendation] = useState(null);
+  const [answerHistory, setAnswerHistory] = useState(savedSession?.answerHistory || []);
+  const [recommendation, setRecommendation] = useState(savedSession?.recommendation || null);
   const [stores, setStores] = useState(initialStores);
   const [editingStore, setEditingStore] = useState(null);
   const [adminStoreSearch, setAdminStoreSearch] = useState('');
@@ -53,6 +57,12 @@ function App() {
     const saved = localStorage.getItem('yl_stores');
     if (saved) setStores(JSON.parse(saved));
   }, []);
+
+  useEffect(() => {
+    sessionStorage.setItem('yl_session', JSON.stringify({
+      stage, currentQuestion, selectedStore, homeStoreQuery, answerHistory, recommendation
+    }));
+  }, [stage, currentQuestion, selectedStore, homeStoreQuery, answerHistory, recommendation]);
 
   useEffect(() => {
     localStorage.setItem('yl_stores', JSON.stringify(stores));
