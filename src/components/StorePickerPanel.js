@@ -1,8 +1,7 @@
-import React from 'react';
+import { useState } from 'react';
 import { MapPin, RefreshCw, Store } from 'lucide-react';
 
 export function StorePickerPanel({
-  colors,
   homeStoreQuery,
   isHomeStoreOpen,
   filteredHomeStores,
@@ -13,8 +12,9 @@ export function StorePickerPanel({
   onStoreSelect,
   onStoreEnter,
   onFindNearest,
-  onStart
+  onAdmin
 }) {
+  const [adminPassword, setAdminPassword] = useState('');
   return (
     <aside className="w-full overflow-hidden rounded-[26px] bg-[#f4f2f3] shadow-[0_18px_40px_rgba(47,35,48,0.14)]">
       <div className="px-6 pb-8 pt-10 text-center" style={{ backgroundColor: '#ab005f' }}>
@@ -52,7 +52,7 @@ export function StorePickerPanel({
             className="w-full rounded-[14px] border border-[#d4d4d9] bg-[#f7f7f9] px-4 py-4 text-base font-medium text-[#5f6673] outline-none transition-colors placeholder:text-[#a1a6b0] focus:border-pink-300"
           />
           {isHomeStoreOpen && (
-            <div className="absolute z-20 mt-2 w-full overflow-hidden rounded-[16px] border border-[#d7d5d8] bg-white shadow-lg">
+            <div className="absolute z-20 mt-2 w-full overflow-hidden rounded-[16px] border border-[#d7d5d8] bg-white shadow-lg" onMouseDown={(e) => e.preventDefault()}>
               {filteredHomeStores.length > 0 ? (
                 <div
                   className="max-h-64 overflow-y-auto overscroll-contain"
@@ -90,10 +90,13 @@ export function StorePickerPanel({
           <input
             type="password"
             placeholder="Admin password"
+            value={adminPassword}
+            onChange={(e) => setAdminPassword(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') onAdmin(adminPassword); }}
             className="rounded-[14px] border border-[#d4d4d9] bg-[#f7f7f9] px-4 py-4 text-base text-[#5f6673] outline-none placeholder:text-[#a1a6b0]"
           />
           <button
-            onClick={onStart}
+            onClick={() => onAdmin(adminPassword)}
             className="safe-bottom rounded-[14px] bg-[#40495d] px-5 py-4 text-base font-bold text-white transition-opacity hover:opacity-90"
           >
             Admin

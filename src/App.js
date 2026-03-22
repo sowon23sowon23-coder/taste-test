@@ -223,7 +223,6 @@ function App() {
       >
         <div className="mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-[380px] items-center">
           <StorePickerPanel
-            colors={YL}
             homeStoreQuery={homeStoreQuery}
             isHomeStoreOpen={isHomeStoreOpen}
             filteredHomeStores={filteredHomeStores}
@@ -244,13 +243,7 @@ function App() {
               }
             }}
             onFindNearest={handleFindNearest}
-            onStart={() => {
-              if (!selectedStore) {
-                alert('Choose a store first.');
-                return;
-              }
-              setStage('play');
-            }}
+            onAdmin={() => setStage('admin')}
           />
         </div>
       </div>
@@ -328,6 +321,39 @@ function App() {
                   Previous
                 </button>
               </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    );
+  }
+
+  if (stage === 'admin') {
+    return (
+      <div
+        className="min-h-screen px-4 py-10 md:px-6 md:py-14"
+        style={{ backgroundColor: YL.bg }}
+      >
+        <div className="mx-auto max-w-2xl">
+          <section className="overflow-hidden rounded-[28px] bg-white shadow-xl">
+            <div style={{ backgroundColor: YL.ink }} className="px-6 py-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-xs font-bold uppercase tracking-widest text-white/50">
+                    Dashboard
+                  </div>
+                  <div className="text-lg font-extrabold text-white">Admin</div>
+                </div>
+                <button
+                  onClick={resetFlow}
+                  className="rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white hover:bg-white/20"
+                >
+                  Exit
+                </button>
+              </div>
+            </div>
+            <div className="p-6 md:p-8">
+              <p className="text-gray-500">Admin page content goes here.</p>
             </div>
           </section>
         </div>
