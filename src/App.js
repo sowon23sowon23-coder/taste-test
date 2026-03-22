@@ -1,8 +1,9 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { ChevronRight, Home, IceCream, Sparkles, Store } from 'lucide-react';
 import { StorePickerPanel } from './components/StorePickerPanel';
 import { questions } from './data/questions';
 import { flavorCategories, flavors, toppings } from './data/flavors';
-import { stores } from './data/stores';
+import { stores as initialStores } from './data/stores';
 import geocodedStores from './data/stores.json';
 
 const YL = {
@@ -44,6 +45,18 @@ function App() {
   const [isLocating, setIsLocating] = useState(false);
   const [answerHistory, setAnswerHistory] = useState([]);
   const [recommendation, setRecommendation] = useState(null);
+  const [stores, setStores] = useState(initialStores);
+  const [editingStore, setEditingStore] = useState(null);
+  const [adminStoreSearch, setAdminStoreSearch] = useState('');
+
+  useEffect(() => {
+    const saved = localStorage.getItem('yl_stores');
+    if (saved) setStores(JSON.parse(saved));
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('yl_stores', JSON.stringify(stores));
+  }, [stores]);
 
   const getStoreKey = (store) => store.id ?? store.name;
   const selectedStoreData = selectedStore ? stores.find((store) => getStoreKey(store) === selectedStore) : null;
@@ -51,8 +64,12 @@ function App() {
     () =>
       stores
         .filter((store) => (store.name || '').toLowerCase().includes(homeStoreQuery.trim().toLowerCase())),
-    [homeStoreQuery]
+    [stores, homeStoreQuery]
   );
+
+  const updateStore = (storeId, updatedStore) => {
+    setStores(stores.map((s) => (getStoreKey(s) === storeId ? updatedStore : s)));
+  };
   const availableFlavors = selectedStoreData?.flavors || [];
   const availableToppings = selectedStoreData?.toppings || [];
   const progress = ((currentQuestion + 1) / questions.length) * 100;
@@ -330,32 +347,132 @@ function App() {
 
   if (stage === 'admin') {
     return (
-      <div
-        className="min-h-screen px-4 py-10 md:px-6 md:py-14"
-        style={{ backgroundColor: YL.bg }}
-      >
-        <div className="mx-auto max-w-2xl">
-          <section className="overflow-hidden rounded-[28px] bg-white shadow-xl">
-            <div style={{ backgroundColor: YL.ink }} className="px-6 py-5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-xs font-bold uppercase tracking-widest text-white/50">
-                    Dashboard
-                  </div>
-                  <div className="text-lg font-extrabold text-white">Admin</div>
+      <div style={{ backgroundColor: YL.bg }} className="min-h-screen p-6">
+        <div className="mx-auto max-w-4xl">
+          <div className="mb-5 flex items-center gap-4 rounded-2xl bg-white p-5 shadow-md">
+            <div style={{ backgroundColor: YL.primary }} className="rounded-xl p-3">
+              <Store className="h-6 w-6 text-white" />
+            </div>
+            <div className="flex-1">
+              <div className="text-xs font-bold uppercase tracking-widest" style={{ color: YL.primary }}>Yogurtland</div>
+              <h1 className="text-2xl font-extrabold text-gray-800">Admin Mode</h1>
+            </div>
+            <button
+              onClick={() => { resetFlow(); setEditingStore(null); setAdminStoreSearch(''); }}
+              className="flex items-center gap-2 rounded-xl bg-gray-100 px-4 py-2.5 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-200"
+            >
+              <Home className="h-4 w-4" />
+              홈 화면으로
+            </button>
+          </div>
+
+          {editingStore ? (
+            <div className="rounded-2xl bg-white p-8 shadow-md">
+              <h2 className="mb-1 text-2xl font-bold text-gray-800">{editingStore.name}</h2>
+              <p className="mb-6 text-sm text-gray-400">Select flavors and toppings sold at this store.</p>
+
+              <div className="mb-6">
+                <h3 className="mb-3 flex items-center gap-2 text-base font-bold" style={{ color: YL.primary }}>
+                  <IceCream className="h-4 w-4" /> Flavors
+                </h3>
+                <div className="grid max-h-80 grid-cols-2 gap-2 overflow-y-auto pr-1 md:grid-cols-3">
+                  {Object.keys(flavors).map((flavor) => (
+                    <label
+                      key={flavor}
+                      className="flex cursor-pointer select-none items-center gap-2 rounded-xl p-3 transition-colors duration-150"
+                      style={{ backgroundColor: editingStore.flavors.includes(flavor) ? YL.primaryLight : '#F9FAFB' }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={editingStore.flavors.includes(flavor)}
+                        onChange={(e) => {
+                          const newFlavors = e.target.checked
+                            ? [...editingStore.flavors, flavor]
+                            : editingStore.flavors.filter((f) => f !== flavor);
+                          setEditingStore({ ...editingStore, flavors: newFlavors });
+                        }}
+                        className="h-4 w-4 rounded"
+                        style={{ accentColor: YL.primary }}
+                      />
+                      <span className="text-sm font-medium text-gray-700">{flavor}</span>
+                    </label>
+                  ))}
                 </div>
+              </div>
+
+              <div className="mb-8">
+                <h3 className="mb-3 flex items-center gap-2 text-base font-bold" style={{ color: YL.green }}>
+                  <Sparkles className="h-4 w-4" /> Toppings
+                </h3>
+                <div className="grid max-h-80 grid-cols-2 gap-2 overflow-y-auto pr-1 md:grid-cols-3">
+                  {Object.keys(toppings).map((topping) => (
+                    <label
+                      key={topping}
+                      className="flex cursor-pointer select-none items-center gap-2 rounded-xl p-3 transition-colors duration-150"
+                      style={{ backgroundColor: editingStore.toppings.includes(topping) ? YL.greenLight : '#F9FAFB' }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={editingStore.toppings.includes(topping)}
+                        onChange={(e) => {
+                          const newToppings = e.target.checked
+                            ? [...editingStore.toppings, topping]
+                            : editingStore.toppings.filter((t) => t !== topping);
+                          setEditingStore({ ...editingStore, toppings: newToppings });
+                        }}
+                        className="h-4 w-4 rounded"
+                        style={{ accentColor: YL.green }}
+                      />
+                      <span className="text-sm font-medium text-gray-700">{topping}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex gap-3">
                 <button
-                  onClick={resetFlow}
-                  className="rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white hover:bg-white/20"
+                  onClick={() => { updateStore(getStoreKey(editingStore), editingStore); setEditingStore(null); }}
+                  style={{ backgroundColor: YL.primary }}
+                  className="flex-1 rounded-xl px-6 py-3 font-bold text-white transition-opacity hover:opacity-90"
                 >
-                  Exit
+                  Save
+                </button>
+                <button
+                  onClick={() => setEditingStore(null)}
+                  className="flex-1 rounded-xl bg-gray-100 px-6 py-3 font-bold text-gray-600 transition-colors hover:bg-gray-200"
+                >
+                  Cancel
                 </button>
               </div>
             </div>
-            <div className="p-6 md:p-8">
-              <p className="text-gray-500">Admin page content goes here.</p>
+          ) : (
+            <div className="space-y-3">
+              <h2 className="text-xl font-bold text-gray-800">Select Store</h2>
+              <input
+                type="text"
+                placeholder="Search stores..."
+                value={adminStoreSearch}
+                onChange={(e) => setAdminStoreSearch(e.target.value)}
+                className="w-full rounded-xl border-2 border-gray-200 bg-white p-3 font-medium text-gray-700 outline-none transition-all duration-200 focus:border-pink-300"
+              />
+              <div className="grid max-h-[500px] gap-2 overflow-y-auto pr-1">
+                {stores
+                  .filter((store) => (store.name || '').toLowerCase().includes(adminStoreSearch.toLowerCase()))
+                  .map((store) => (
+                    <button
+                      key={getStoreKey(store)}
+                      onClick={() => setEditingStore({ ...store, flavors: store.flavors || [], toppings: store.toppings || [] })}
+                      className="group flex items-center justify-between rounded-xl bg-white px-5 py-4 text-left font-medium text-gray-800 shadow-sm transition-all duration-150 hover:shadow-md"
+                      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = YL.primary; e.currentTarget.style.color = 'white'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'white'; e.currentTarget.style.color = ''; }}
+                    >
+                      <span>{store.name}</span>
+                      <ChevronRight className="h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100" />
+                    </button>
+                  ))}
+              </div>
             </div>
-          </section>
+          )}
         </div>
       </div>
     );
