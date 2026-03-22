@@ -23,64 +23,78 @@ export const flavorCategories = {
 
 export const flavors = {
   'Original Tart': {
+    name: 'Super Tart',
     category: 'tart',
-    description: 'Tangy, crisp, and made for bright toppings.'
+    description: 'Tangy, crisp, and made for bright toppings.',
+    image: '/flavors/original-tart.png'
   },
   'Pomegranate Tart': {
     category: 'tart',
-    description: 'A tart base with a fruitier finish.'
-  },
-  Vanilla: {
-    category: 'classic',
-    description: 'Smooth and easy to pair with almost anything.'
+    description: 'A tart base with a fruitier finish.',
+    image: '/flavors/pomegranate-tart.png'
   },
   'French Vanilla': {
     category: 'classic',
-    description: 'A richer vanilla profile with dessert energy.'
+    description: 'A richer vanilla profile with dessert energy.',
+    image: '/flavors/french-vanilla.png'
   },
   Chocolate: {
+    name: 'Rich Chocolate',
     category: 'chocolate',
-    description: 'Full cocoa flavor for classic chocolate lovers.'
+    description: 'Full cocoa flavor for classic chocolate lovers.',
+    image: '/flavors/chocolate.png'
   },
   'Dutch Chocolate': {
     category: 'chocolate',
-    description: 'A deeper, darker chocolate option.'
-  },
-  'Mint Chocolate Chip': {
-    category: 'chocolate',
-    description: 'Cool mint paired with chocolate crunch.'
+    description: 'A deeper, darker chocolate option.',
+    image: '/flavors/dutch-chocolate.png'
   },
   Strawberry: {
+    name: 'Fresh Strawberry',
     category: 'fruity',
-    description: 'Sweet berry flavor with an approachable finish.'
+    description: 'Sweet berry flavor with an approachable finish.',
+    image: '/flavors/strawberry.png'
   },
   Mango: {
+    name: 'Alphonso Mango Tart',
     category: 'fruity',
-    description: 'Juicy tropical flavor that feels bright and sunny.'
+    description: 'Juicy tropical flavor that feels bright and sunny.',
+    image: '/flavors/mango.png'
   },
   Lemon: {
+    name: 'Lemonade Sorbet',
     category: 'fruity',
-    description: 'Citrusy and light with a refreshing edge.'
+    description: 'Citrusy and light with a refreshing edge.',
+    image: '/flavors/lemon.png'
   },
   Peach: {
+    name: 'Peach Tart',
     category: 'fruity',
-    description: 'Soft stone-fruit sweetness with a mellow finish.'
+    description: 'Soft stone-fruit sweetness with a mellow finish.',
+    image: '/flavors/peach.png'
   },
   'Passion Fruit': {
+    name: 'Passion Fruit Sorbet',
     category: 'fruity',
-    description: 'Vibrant tropical flavor with a tart lift.'
+    description: 'Vibrant tropical flavor with a tart lift.',
+    image: '/flavors/passion-fruit.png'
   },
   'Cookies & Cream': {
+    name: 'Classic Cookies and Cream',
     category: 'specialty',
-    description: 'Creamy base folded into cookie flavor.'
+    description: 'Creamy base folded into cookie flavor.',
+    image: '/flavors/cookies-and-cream.png'
   },
   'Cake Batter': {
+    name: 'Birthday Cupcake Batter',
     category: 'specialty',
-    description: 'Sweet, playful, and built for treat-style combos.'
+    description: 'Sweet, playful, and built for treat-style combos.',
+    image: '/flavors/cake-batter.png'
   },
   'Peanut Butter': {
     category: 'specialty',
-    description: 'Nutty, rich, and ideal for indulgent pairings.'
+    description: 'Nutty, rich, and ideal for indulgent pairings.',
+    image: '/flavors/peanut-butter.png'
   }
 };
 

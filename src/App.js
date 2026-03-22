@@ -504,9 +504,13 @@ function App() {
                 Recommended Flavor
               </div>
               <div className="flex items-center gap-4">
-                <span className="text-5xl">{flavorCategory.icon}</span>
+                {flavorData.image ? (
+                  <img src={flavorData.image} alt={flavorData.name || recommendation?.flavor} className="h-14 w-14 rounded-xl object-cover" />
+                ) : (
+                  <span className="text-5xl">{flavorCategory.icon}</span>
+                )}
                 <div>
-                  <div className="text-2xl font-extrabold text-gray-800">{recommendation?.flavor}</div>
+                  <div className="text-2xl font-extrabold text-gray-800">{flavorData.name || recommendation?.flavor}</div>
                   <div className="mt-0.5 text-sm text-gray-500">{flavorData.description}</div>
                 </div>
               </div>
