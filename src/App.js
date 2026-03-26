@@ -36,6 +36,67 @@ const CITY_ALIAS_MAP = {
   'west jordan': ['JORDAN LANDING']
 };
 
+const createCustomId = (prefix) => `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+const normalizeStore = (store) => ({
+  ...store,
+  flavors: store.flavors || [],
+  toppings: store.toppings || [],
+  customFlavors: store.customFlavors || [],
+  customToppings: store.customToppings || []
+});
+
+const fileToDataUrl = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('Failed to read file.'));
+    reader.readAsDataURL(file);
+  });
+
+function ImageDropInput({ label, image, onImageChange }) {
+  const handleFiles = async (fileList) => {
+    const file = fileList?.[0];
+    if (!file || !file.type.startsWith('image/')) return;
+    const dataUrl = await fileToDataUrl(file);
+    onImageChange(dataUrl);
+  };
+
+  return (
+    <label
+      className="block cursor-pointer rounded-2xl border-2 border-dashed border-gray-300 bg-[#f7f7f9] p-4 text-center transition-colors hover:border-pink-300"
+      onDragOver={(event) => event.preventDefault()}
+      onDrop={(event) => {
+        event.preventDefault();
+        handleFiles(event.dataTransfer.files);
+      }}
+      onPaste={(event) => {
+        const imageItem = Array.from(event.clipboardData.items).find((item) => item.type.startsWith('image/'));
+        if (!imageItem) return;
+        event.preventDefault();
+        const file = imageItem.getAsFile();
+        if (file) handleFiles([file]);
+      }}
+      tabIndex={0}
+    >
+      <input
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(event) => {
+          handleFiles(event.target.files);
+          event.target.value = '';
+        }}
+      />
+      {image ? (
+        <img src={image} alt={label} className="mx-auto mb-3 h-24 w-24 rounded-2xl object-cover shadow-sm" />
+      ) : null}
+      <div className="text-sm font-semibold text-gray-700">{label}</div>
+      <div className="mt-1 text-xs leading-5 text-gray-500">Drag image here, click to upload, or paste from clipboard.</div>
+    </label>
+  );
+}
+
 function App() {
   const savedSession = (() => {
     try {
@@ -53,13 +114,15 @@ function App() {
   const [isLocating, setIsLocating] = useState(false);
   const [answerHistory, setAnswerHistory] = useState(savedSession?.answerHistory || []);
   const [recommendation, setRecommendation] = useState(savedSession?.recommendation || null);
-  const [stores, setStores] = useState(initialStores);
+  const [stores, setStores] = useState(initialStores.map(normalizeStore));
   const [editingStore, setEditingStore] = useState(null);
   const [adminStoreSearch, setAdminStoreSearch] = useState('');
+  const [customFlavorDraft, setCustomFlavorDraft] = useState({ name: '', image: '' });
+  const [customToppingDraft, setCustomToppingDraft] = useState({ name: '', image: '' });
 
   useEffect(() => {
     const saved = localStorage.getItem('yl_stores');
-    if (saved) setStores(JSON.parse(saved));
+    if (saved) setStores(JSON.parse(saved).map(normalizeStore));
   }, []);
 
   useEffect(() => {
@@ -77,11 +140,19 @@ function App() {
   }, [stage, currentQuestion, selectedStore, homeStoreQuery, answerHistory, recommendation]);
 
   useEffect(() => {
-    localStorage.setItem('yl_stores', JSON.stringify(stores));
+    localStorage.setItem('yl_stores', JSON.stringify(stores.map(normalizeStore)));
   }, [stores]);
 
   const getStoreKey = (store) => store.id ?? store.name;
   const selectedStoreData = selectedStore ? stores.find((store) => getStoreKey(store) === selectedStore) : null;
+  const selectedStoreFlavorMap = {
+    ...flavors,
+    ...Object.fromEntries((selectedStoreData?.customFlavors || []).map((item) => [item.name, item]))
+  };
+  const selectedStoreToppingMap = {
+    ...toppings,
+    ...Object.fromEntries((selectedStoreData?.customToppings || []).map((item) => [item.name, item]))
+  };
   const filteredHomeStores = useMemo(
     () =>
       stores.filter((store) => (store.name || '').toLowerCase().includes(homeStoreQuery.trim().toLowerCase())),
@@ -89,7 +160,7 @@ function App() {
   );
 
   const updateStore = (storeId, updatedStore) => {
-    setStores(stores.map((s) => (getStoreKey(s) === storeId ? updatedStore : s)));
+    setStores(stores.map((s) => (getStoreKey(s) === storeId ? normalizeStore(updatedStore) : s)));
   };
   const availableFlavors = selectedStoreData?.flavors || [];
   const availableToppings = selectedStoreData?.toppings || [];
@@ -182,6 +253,63 @@ function App() {
     setCurrentQuestion(0);
     setAnswerHistory([]);
     setRecommendation(null);
+  };
+
+  const addCustomFlavorToStore = () => {
+    const name = customFlavorDraft.name.trim();
+    if (!name || !customFlavorDraft.image || !editingStore) return;
+
+    const nextFlavor = {
+      id: createCustomId('flavor'),
+      name,
+      category: 'specialty',
+      description: 'Custom store flavor.',
+      image: customFlavorDraft.image
+    };
+
+    setEditingStore({
+      ...editingStore,
+      flavors: editingStore.flavors.includes(name) ? editingStore.flavors : [...editingStore.flavors, name],
+      customFlavors: [...editingStore.customFlavors.filter((item) => item.name !== name), nextFlavor]
+    });
+    setCustomFlavorDraft({ name: '', image: '' });
+  };
+
+  const addCustomToppingToStore = () => {
+    const name = customToppingDraft.name.trim();
+    if (!name || !customToppingDraft.image || !editingStore) return;
+
+    const nextTopping = {
+      id: createCustomId('topping'),
+      name,
+      category: 'custom',
+      image: customToppingDraft.image
+    };
+
+    setEditingStore({
+      ...editingStore,
+      toppings: editingStore.toppings.includes(name) ? editingStore.toppings : [...editingStore.toppings, name],
+      customToppings: [...editingStore.customToppings.filter((item) => item.name !== name), nextTopping]
+    });
+    setCustomToppingDraft({ name: '', image: '' });
+  };
+
+  const removeCustomFlavorFromStore = (name) => {
+    if (!editingStore) return;
+    setEditingStore({
+      ...editingStore,
+      flavors: editingStore.flavors.filter((item) => item !== name),
+      customFlavors: editingStore.customFlavors.filter((item) => item.name !== name)
+    });
+  };
+
+  const removeCustomToppingFromStore = (name) => {
+    if (!editingStore) return;
+    setEditingStore({
+      ...editingStore,
+      toppings: editingStore.toppings.filter((item) => item !== name),
+      customToppings: editingStore.customToppings.filter((item) => item.name !== name)
+    });
   };
 
   const recomputeScores = (history) => {
@@ -414,6 +542,60 @@ function App() {
                 </div>
               </div>
 
+              <div className="mb-8 rounded-2xl border border-pink-100 bg-pink-50/60 p-5">
+                <div className="mb-4 flex items-center justify-between gap-3">
+                  <h3 className="text-base font-bold" style={{ color: YL.primary }}>
+                    Add Custom Flavor
+                  </h3>
+                  <span className="text-xs font-medium text-gray-500">Saved only for this store</span>
+                </div>
+                <div className="grid gap-4 md:grid-cols-[1fr_220px]">
+                  <div className="space-y-3">
+                    <input
+                      type="text"
+                      placeholder="Flavor name"
+                      value={customFlavorDraft.name}
+                      onChange={(e) => setCustomFlavorDraft((current) => ({ ...current, name: e.target.value }))}
+                      className="w-full rounded-xl border border-pink-100 bg-white p-3 text-sm font-medium text-gray-700 outline-none focus:border-pink-300"
+                    />
+                    <button
+                      type="button"
+                      onClick={addCustomFlavorToStore}
+                      disabled={!customFlavorDraft.name.trim() || !customFlavorDraft.image}
+                      style={{ backgroundColor: YL.primary }}
+                      className="rounded-xl px-4 py-3 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+                    >
+                      Add Flavor To Store
+                    </button>
+                  </div>
+                  <ImageDropInput
+                    label="Flavor image"
+                    image={customFlavorDraft.image}
+                    onImageChange={(image) => setCustomFlavorDraft((current) => ({ ...current, image }))}
+                  />
+                </div>
+                {editingStore.customFlavors.length > 0 ? (
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                    {editingStore.customFlavors.map((item) => (
+                      <div key={item.id || item.name} className="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-sm">
+                        <img src={item.image} alt={item.name} className="h-14 w-14 rounded-xl object-cover" />
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate text-sm font-bold text-gray-800">{item.name}</div>
+                          <div className="text-xs text-gray-500">Custom flavor</div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeCustomFlavorFromStore(item.name)}
+                          className="rounded-lg bg-gray-100 px-3 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-200"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+
               <div className="mb-8">
                 <h3 className="mb-3 flex items-center gap-2 text-base font-bold" style={{ color: YL.green }}>
                   <Sparkles className="h-4 w-4" /> Toppings
@@ -443,11 +625,67 @@ function App() {
                 </div>
               </div>
 
+              <div className="mb-8 rounded-2xl border border-lime-100 bg-lime-50/60 p-5">
+                <div className="mb-4 flex items-center justify-between gap-3">
+                  <h3 className="text-base font-bold" style={{ color: YL.green }}>
+                    Add Custom Topping
+                  </h3>
+                  <span className="text-xs font-medium text-gray-500">Saved only for this store</span>
+                </div>
+                <div className="grid gap-4 md:grid-cols-[1fr_220px]">
+                  <div className="space-y-3">
+                    <input
+                      type="text"
+                      placeholder="Topping name"
+                      value={customToppingDraft.name}
+                      onChange={(e) => setCustomToppingDraft((current) => ({ ...current, name: e.target.value }))}
+                      className="w-full rounded-xl border border-lime-100 bg-white p-3 text-sm font-medium text-gray-700 outline-none focus:border-lime-300"
+                    />
+                    <button
+                      type="button"
+                      onClick={addCustomToppingToStore}
+                      disabled={!customToppingDraft.name.trim() || !customToppingDraft.image}
+                      style={{ backgroundColor: YL.green }}
+                      className="rounded-xl px-4 py-3 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+                    >
+                      Add Topping To Store
+                    </button>
+                  </div>
+                  <ImageDropInput
+                    label="Topping image"
+                    image={customToppingDraft.image}
+                    onImageChange={(image) => setCustomToppingDraft((current) => ({ ...current, image }))}
+                  />
+                </div>
+                {editingStore.customToppings.length > 0 ? (
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                    {editingStore.customToppings.map((item) => (
+                      <div key={item.id || item.name} className="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-sm">
+                        <img src={item.image} alt={item.name} className="h-14 w-14 rounded-xl object-cover" />
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate text-sm font-bold text-gray-800">{item.name}</div>
+                          <div className="text-xs text-gray-500">Custom topping</div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeCustomToppingFromStore(item.name)}
+                          className="rounded-lg bg-gray-100 px-3 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-200"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+
               <div className="flex gap-3">
                 <button
                   onClick={() => {
                     updateStore(getStoreKey(editingStore), editingStore);
                     setEditingStore(null);
+                    setCustomFlavorDraft({ name: '', image: '' });
+                    setCustomToppingDraft({ name: '', image: '' });
                   }}
                   style={{ backgroundColor: YL.primary }}
                   className="flex-1 rounded-xl px-6 py-3 font-bold text-white transition-opacity hover:opacity-90"
@@ -455,7 +693,11 @@ function App() {
                   Save
                 </button>
                 <button
-                  onClick={() => setEditingStore(null)}
+                  onClick={() => {
+                    setEditingStore(null);
+                    setCustomFlavorDraft({ name: '', image: '' });
+                    setCustomToppingDraft({ name: '', image: '' });
+                  }}
                   className="flex-1 rounded-xl bg-gray-100 px-6 py-3 font-bold text-gray-600 transition-colors hover:bg-gray-200"
                 >
                   Cancel
@@ -478,7 +720,11 @@ function App() {
                   .map((store) => (
                     <button
                       key={getStoreKey(store)}
-                      onClick={() => setEditingStore({ ...store, flavors: store.flavors || [], toppings: store.toppings || [] })}
+                      onClick={() => {
+                        setEditingStore(normalizeStore(store));
+                        setCustomFlavorDraft({ name: '', image: '' });
+                        setCustomToppingDraft({ name: '', image: '' });
+                      }}
                       className="group flex items-center justify-between rounded-xl bg-white px-5 py-4 text-left font-medium text-gray-800 shadow-sm transition-all duration-150 hover:shadow-md"
                       onMouseEnter={(e) => {
                         e.currentTarget.style.backgroundColor = YL.primary;
@@ -501,18 +747,18 @@ function App() {
     );
   }
 
-  const flavorData = flavors[recommendation?.flavor] || { category: 'classic', description: 'A Yogurtland favorite.' };
+  const flavorData = selectedStoreFlavorMap[recommendation?.flavor] || { category: 'classic', description: 'A Yogurtland favorite.' };
   const flavorCategory = flavorCategories[flavorData.category] || flavorCategories.classic;
 
   return (
     <div style={{ backgroundColor: YL.bg }} className="min-h-screen px-4 py-4 md:py-8">
-      <div className="mx-auto grid max-w-5xl gap-4 lg:grid-cols-[0.95fr_1.05fr] lg:gap-6">
-        <section className="overflow-hidden rounded-[28px] bg-white shadow-xl md:rounded-[32px]">
+      <div className="mx-auto flex max-w-5xl justify-center">
+        <section className="w-full max-w-2xl overflow-hidden rounded-[28px] bg-white shadow-xl md:rounded-[32px]">
           <div
-            className="px-5 pb-5 pt-6 md:px-8 md:pb-6 md:pt-8"
+            className="px-5 pb-5 pt-6 text-center md:px-8 md:pb-6 md:pt-8"
             style={{ background: `linear-gradient(135deg, ${YL.primaryLight} 0%, #ffffff 100%)` }}
           >
-            <img src="/yogurtland-logo.png" alt="Yogurtland" className="mb-4 h-10 object-contain" />
+            <img src="/yogurtland-logo.png" alt="Yogurtland" className="mx-auto mb-4 h-10 object-contain" />
             <div className="text-xs font-black uppercase tracking-[0.28em]" style={{ color: YL.primary }}>
               Flavor Personality
             </div>
@@ -521,12 +767,12 @@ function App() {
             </h1>
             <p className="mt-3 text-sm leading-6 text-gray-600">{selectedStoreData?.name}</p>
           </div>
-          <div className="space-y-4 p-5 md:space-y-5 md:p-8">
+          <div className="space-y-4 p-5 text-center md:space-y-5 md:p-8">
             <div className="rounded-[24px] p-5 md:rounded-3xl" style={{ backgroundColor: YL.primaryLight }}>
               <div className="mb-2 text-xs font-bold uppercase tracking-widest" style={{ color: YL.primary }}>
                 Recommended Flavor
               </div>
-              <div className="flex items-center gap-4">
+              <div className="flex flex-col items-center gap-4">
                 {flavorData.image ? (
                   <img src={flavorData.image} alt={flavorData.name || recommendation?.flavor} className="h-14 w-14 rounded-xl object-cover" />
                 ) : (
@@ -544,8 +790,16 @@ function App() {
               </div>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {(recommendation?.toppings || []).map((toppingName) => (
-                  <div key={toppingName} className="flex items-center gap-3 rounded-2xl bg-white p-4">
-                    <span className="text-3xl">{toppings[toppingName]?.icon || 'T'}</span>
+                  <div key={toppingName} className="flex flex-col items-center gap-3 rounded-2xl bg-white p-4 text-center">
+                    {selectedStoreToppingMap[toppingName]?.image ? (
+                      <img
+                        src={selectedStoreToppingMap[toppingName].image}
+                        alt={toppingName}
+                        className="h-14 w-14 rounded-xl object-cover"
+                      />
+                    ) : (
+                      <span className="text-3xl">{selectedStoreToppingMap[toppingName]?.icon || 'T'}</span>
+                    )}
                     <div className="text-lg font-extrabold text-gray-800">{toppingName}</div>
                   </div>
                 ))}
@@ -566,6 +820,14 @@ function App() {
                 Back Home
               </button>
             </div>
+            <a
+              href="https://www.yogurtland.com/flavorfinder"
+              target="_blank"
+              rel="noreferrer"
+              className="block text-sm font-semibold text-[#960853] underline-offset-4 transition-opacity hover:opacity-80 hover:underline"
+            >
+              Visit Yogurtland Flavor Finder
+            </a>
           </div>
         </section>
       </div>
