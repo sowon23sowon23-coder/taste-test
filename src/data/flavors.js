@@ -39,7 +39,13 @@ export const flavors = {
     image: '/flavors/french-vanilla.png'
   },
   Chocolate: {
-    name: 'Rich Chocolate',
+    name: 'Dutch Chocolate',
+    category: 'chocolate',
+    description: 'Full cocoa flavor for classic chocolate lovers.',
+    image: '/flavors/dutch-chocolate.png'
+  },
+  'Rich Chocolate': {
+    name: 'Dutch Chocolate',
     category: 'chocolate',
     description: 'Full cocoa flavor for classic chocolate lovers.',
     image: '/flavors/dutch-chocolate.png'
