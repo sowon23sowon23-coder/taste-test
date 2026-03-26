@@ -38,7 +38,11 @@ const CITY_ALIAS_MAP = {
 
 function App() {
   const savedSession = (() => {
-    try { return JSON.parse(sessionStorage.getItem('yl_session') || 'null'); } catch { return null; }
+    try {
+      return JSON.parse(sessionStorage.getItem('yl_session') || 'null');
+    } catch {
+      return null;
+    }
   })();
 
   const [stage, setStage] = useState(savedSession?.stage || 'home');
@@ -59,9 +63,17 @@ function App() {
   }, []);
 
   useEffect(() => {
-    sessionStorage.setItem('yl_session', JSON.stringify({
-      stage, currentQuestion, selectedStore, homeStoreQuery, answerHistory, recommendation
-    }));
+    sessionStorage.setItem(
+      'yl_session',
+      JSON.stringify({
+        stage,
+        currentQuestion,
+        selectedStore,
+        homeStoreQuery,
+        answerHistory,
+        recommendation
+      })
+    );
   }, [stage, currentQuestion, selectedStore, homeStoreQuery, answerHistory, recommendation]);
 
   useEffect(() => {
@@ -72,8 +84,7 @@ function App() {
   const selectedStoreData = selectedStore ? stores.find((store) => getStoreKey(store) === selectedStore) : null;
   const filteredHomeStores = useMemo(
     () =>
-      stores
-        .filter((store) => (store.name || '').toLowerCase().includes(homeStoreQuery.trim().toLowerCase())),
+      stores.filter((store) => (store.name || '').toLowerCase().includes(homeStoreQuery.trim().toLowerCase())),
     [stores, homeStoreQuery]
   );
 
@@ -99,9 +110,7 @@ function App() {
     const dLon = ((lon2 - lon1) * Math.PI) / 180;
     const a =
       Math.sin(dLat / 2) ** 2 +
-      Math.cos((lat1 * Math.PI) / 180) *
-        Math.cos((lat2 * Math.PI) / 180) *
-        Math.sin(dLon / 2) ** 2;
+      Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
     return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   };
 
@@ -116,11 +125,7 @@ function App() {
     return (
       stores.find(
         (store) =>
-          aliases.some(
-            (alias) =>
-              (store.id || '').toUpperCase() === alias ||
-              (store.name || '').toUpperCase().includes(alias)
-          )
+          aliases.some((alias) => (store.id || '').toUpperCase() === alias || (store.name || '').toUpperCase().includes(alias))
       ) || null
     );
   };
@@ -135,9 +140,7 @@ function App() {
     setIsLocating(true);
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
-        const candidates = geocodedStores.filter(
-          (store) => Number.isFinite(store.lat) && Number.isFinite(store.lon)
-        );
+        const candidates = geocodedStores.filter((store) => Number.isFinite(store.lat) && Number.isFinite(store.lon));
 
         let nearest = null;
         let minDistance = Infinity;
@@ -192,8 +195,7 @@ function App() {
       option.toppings.forEach((topping) => {
         nextScores.toppings[topping] = (nextScores.toppings[topping] || 0) + 1;
       });
-      nextScores.personalities[option.personality] =
-        (nextScores.personalities[option.personality] || 0) + 1;
+      nextScores.personalities[option.personality] = (nextScores.personalities[option.personality] || 0) + 1;
     });
 
     return nextScores;
@@ -285,9 +287,7 @@ function App() {
             <div style={{ backgroundColor: YL.primary }} className="px-5 py-4 md:px-8 md:py-5">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <div className="text-xs font-bold uppercase tracking-widest text-white/60">
-                    Question Flow
-                  </div>
+                  <div className="text-xs font-bold uppercase tracking-widest text-white/60">Question Flow</div>
                   <div className="text-lg font-extrabold text-white">Flavor Test</div>
                 </div>
                 {selectedStoreData?.name ? (
@@ -316,9 +316,7 @@ function App() {
                 className="mb-6 rounded-[24px] p-5 text-center md:rounded-3xl md:p-6"
                 style={{ backgroundColor: YL.primaryLight }}
               >
-                <p className="text-xl font-black text-gray-800 md:text-2xl">
-                  {questions[currentQuestion].text}
-                </p>
+                <p className="text-xl font-black text-gray-800 md:text-2xl">{questions[currentQuestion].text}</p>
               </div>
               <div className="mb-6 grid grid-cols-1 gap-3 md:grid-cols-2">
                 {questions[currentQuestion].options.map((option, index) => (
@@ -364,15 +362,21 @@ function App() {
               <Store className="h-6 w-6 text-white" />
             </div>
             <div className="flex-1">
-              <div className="text-xs font-bold uppercase tracking-widest" style={{ color: YL.primary }}>Yogurtland</div>
+              <div className="text-xs font-bold uppercase tracking-widest" style={{ color: YL.primary }}>
+                Yogurtland
+              </div>
               <h1 className="text-2xl font-extrabold text-gray-800">Admin Mode</h1>
             </div>
             <button
-              onClick={() => { resetFlow(); setEditingStore(null); setAdminStoreSearch(''); }}
+              onClick={() => {
+                resetFlow();
+                setEditingStore(null);
+                setAdminStoreSearch('');
+              }}
               className="flex items-center gap-2 rounded-xl bg-gray-100 px-4 py-2.5 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-200"
             >
               <Home className="h-4 w-4" />
-              홈 화면으로
+              Back Home
             </button>
           </div>
 
@@ -441,7 +445,10 @@ function App() {
 
               <div className="flex gap-3">
                 <button
-                  onClick={() => { updateStore(getStoreKey(editingStore), editingStore); setEditingStore(null); }}
+                  onClick={() => {
+                    updateStore(getStoreKey(editingStore), editingStore);
+                    setEditingStore(null);
+                  }}
                   style={{ backgroundColor: YL.primary }}
                   className="flex-1 rounded-xl px-6 py-3 font-bold text-white transition-opacity hover:opacity-90"
                 >
@@ -473,8 +480,14 @@ function App() {
                       key={getStoreKey(store)}
                       onClick={() => setEditingStore({ ...store, flavors: store.flavors || [], toppings: store.toppings || [] })}
                       className="group flex items-center justify-between rounded-xl bg-white px-5 py-4 text-left font-medium text-gray-800 shadow-sm transition-all duration-150 hover:shadow-md"
-                      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = YL.primary; e.currentTarget.style.color = 'white'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'white'; e.currentTarget.style.color = ''; }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = YL.primary;
+                        e.currentTarget.style.color = 'white';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'white';
+                        e.currentTarget.style.color = '';
+                      }}
                     >
                       <span>{store.name}</span>
                       <ChevronRight className="h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100" />
@@ -532,7 +545,7 @@ function App() {
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {(recommendation?.toppings || []).map((toppingName) => (
                   <div key={toppingName} className="flex items-center gap-3 rounded-2xl bg-white p-4">
-                    <span className="text-3xl">{toppings[toppingName]?.icon || '🍬'}</span>
+                    <span className="text-3xl">{toppings[toppingName]?.icon || 'T'}</span>
                     <div className="text-lg font-extrabold text-gray-800">{toppingName}</div>
                   </div>
                 ))}

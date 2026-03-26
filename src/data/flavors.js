@@ -1,23 +1,23 @@
 export const flavorCategories = {
   tart: {
     name: 'Tart',
-    icon: '🍋'
+    icon: 'T'
   },
   classic: {
     name: 'Classic',
-    icon: '🍦'
+    icon: 'C'
   },
   chocolate: {
     name: 'Chocolate',
-    icon: '🍫'
+    icon: 'Ch'
   },
   fruity: {
     name: 'Fruity',
-    icon: '🍓'
+    icon: 'F'
   },
   specialty: {
     name: 'Specialty',
-    icon: '✨'
+    icon: 'S'
   }
 };
 
@@ -42,7 +42,7 @@ export const flavors = {
     name: 'Rich Chocolate',
     category: 'chocolate',
     description: 'Full cocoa flavor for classic chocolate lovers.',
-    image: '/flavors/chocolate.png'
+    image: '/flavors/dutch-chocolate.png'
   },
   'Dutch Chocolate': {
     category: 'chocolate',
@@ -99,17 +99,17 @@ export const flavors = {
 };
 
 export const toppings = {
-  'Chocolate Chips': { category: 'chocolate', icon: '🍫' },
-  Oreo: { category: 'chocolate', icon: '🍪' },
-  'Brownie Bites': { category: 'chocolate', icon: '🧁' },
-  'Fresh Fruit': { category: 'fruit', icon: '🍓' },
-  Jelly: { category: 'fruit', icon: '🫐' },
-  Strawberries: { category: 'fruit', icon: '🍓' },
-  Mango: { category: 'fruit', icon: '🥭' },
-  Cookies: { category: 'candy', icon: '🍪' },
-  'M&Ms': { category: 'candy', icon: '🍬' },
-  'Gummy Bears': { category: 'candy', icon: '🧸' },
-  Caramel: { category: 'sauce', icon: '🍯' },
-  'Whipped Cream': { category: 'sauce', icon: '🍦' },
-  'Hot Fudge': { category: 'sauce', icon: '🍫' }
+  'Chocolate Chips': { category: 'chocolate', icon: 'CC' },
+  Oreo: { category: 'chocolate', icon: 'O' },
+  'Brownie Bites': { category: 'chocolate', icon: 'B' },
+  'Fresh Fruit': { category: 'fruit', icon: 'FF' },
+  Jelly: { category: 'fruit', icon: 'J' },
+  Strawberries: { category: 'fruit', icon: 'S' },
+  Mango: { category: 'fruit', icon: 'M' },
+  Cookies: { category: 'candy', icon: 'C' },
+  'M&Ms': { category: 'candy', icon: 'M' },
+  'Gummy Bears': { category: 'candy', icon: 'G' },
+  Caramel: { category: 'sauce', icon: 'Ca' },
+  'Whipped Cream': { category: 'sauce', icon: 'W' },
+  'Hot Fudge': { category: 'sauce', icon: 'H' }
 };
