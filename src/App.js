@@ -35,6 +35,7 @@ const CITY_ALIAS_MAP = {
   'st. george': ['RED ROCK COMMONS', 'OREM'],
   'west jordan': ['JORDAN LANDING']
 };
+const ADMIN_PASSWORD = 'admin1234';
 
 const createCustomId = (prefix) => `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
@@ -370,6 +371,21 @@ function App() {
     setCurrentQuestion((current) => current - 1);
   };
 
+  const handleAdminAccess = (passwordInput) => {
+    const password = passwordInput?.trim();
+    if (!password) {
+      alert('Enter the admin password first.');
+      return;
+    }
+
+    if (password !== ADMIN_PASSWORD) {
+      alert('Incorrect admin password.');
+      return;
+    }
+
+    setStage('admin');
+  };
+
   if (stage === 'home') {
     return (
       <div
@@ -400,7 +416,7 @@ function App() {
               }
             }}
             onFindNearest={handleFindNearest}
-            onAdmin={() => setStage('admin')}
+            onAdmin={handleAdminAccess}
           />
         </div>
       </div>
@@ -790,7 +806,7 @@ function App() {
               </div>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {(recommendation?.toppings || []).map((toppingName) => (
-                  <div key={toppingName} className="flex flex-col items-center gap-3 rounded-2xl bg-white p-4 text-center">
+                  <div key={toppingName} className="flex items-center justify-center gap-3 rounded-2xl bg-white p-4 text-center">
                     {selectedStoreToppingMap[toppingName]?.image ? (
                       <img
                         src={selectedStoreToppingMap[toppingName].image}
@@ -798,7 +814,9 @@ function App() {
                         className="h-14 w-14 rounded-xl object-cover"
                       />
                     ) : (
-                      <span className="text-3xl">{selectedStoreToppingMap[toppingName]?.icon || 'T'}</span>
+                      <span className="flex h-14 w-14 items-center justify-center rounded-xl bg-[#f5f7eb] text-lg font-extrabold text-[#6da126]">
+                        {selectedStoreToppingMap[toppingName]?.icon || 'T'}
+                      </span>
                     )}
                     <div className="text-lg font-extrabold text-gray-800">{toppingName}</div>
                   </div>

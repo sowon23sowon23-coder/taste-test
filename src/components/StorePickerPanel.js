@@ -92,12 +92,15 @@ export function StorePickerPanel({
             placeholder="Admin password"
             value={adminPassword}
             onChange={(e) => setAdminPassword(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') onAdmin(adminPassword); }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && adminPassword.trim()) onAdmin(adminPassword);
+            }}
             className="rounded-[14px] border border-[#d4d4d9] bg-[#f7f7f9] px-4 py-4 text-base text-[#5f6673] outline-none placeholder:text-[#a1a6b0]"
           />
           <button
             onClick={() => onAdmin(adminPassword)}
-            className="safe-bottom rounded-[14px] bg-[#40495d] px-5 py-4 text-base font-bold text-white transition-opacity hover:opacity-90"
+            disabled={!adminPassword.trim()}
+            className="safe-bottom rounded-[14px] bg-[#40495d] px-5 py-4 text-base font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
           >
             Admin
           </button>
@@ -106,3 +109,5 @@ export function StorePickerPanel({
     </aside>
   );
 }
+
+
